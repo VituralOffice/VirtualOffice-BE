@@ -1,42 +1,34 @@
-import { HttpStatus } from "@nestjs/common";
-import { Injectable } from "@nestjs/common";
-import { ApiException } from "src/utils/exception";
-import { createClient, RedisClientOptions, RedisClientType } from "redis";
+import { HttpStatus } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { ApiException } from 'src/common/exception';
+import { createClient, RedisClientOptions, RedisClientType } from 'redis';
 
-import { ILoggerService } from "../global/logger/adapter";
-import { ICacheService } from "./adapter";
-import { CacheKeyArgument, CacheKeyValue, CacheValeuArgument } from "./types";
+import { ILoggerService } from '../global/logger/adapter';
+import { ICacheService } from './adapter';
+import { CacheKeyArgument, CacheKeyValue, CacheValeuArgument } from './types';
 
 @Injectable()
 export class RedisService implements ICacheService {
   client: RedisClientType;
 
-  constructor(
-    private readonly config: RedisClientOptions,
-    private readonly logger: ILoggerService
-  ) {
+  constructor(private readonly config: RedisClientOptions, private readonly logger: ILoggerService) {
     this.client = createClient(this.config) as RedisClientType;
   }
 
   async isConnected(): Promise<void> {
     const ping = await this.client.ping();
-    if (ping !== "PONG") this.throwException("redis disconnected.");
+    if (ping !== 'PONG') this.throwException('redis disconnected.');
   }
 
   async connect(): Promise<RedisClientType> {
     await this.client.connect();
-    this.logger.log("Redis connected!\n");
+    this.logger.log('Redis connected!\n');
     return this.client;
   }
 
-  async set(
-    key: CacheKeyArgument,
-    value: CacheValeuArgument,
-    config?: unknown
-  ): Promise<void> {
+  async set(key: CacheKeyArgument, value: CacheValeuArgument, config?: unknown): Promise<void> {
     const setResult = await this.client.set(key, value, config);
-    if (setResult !== "OK")
-      this.throwException(`cache ${this.set.name} error: ${key} ${value}`);
+    if (setResult !== 'OK') this.throwException(`cache ${this.set.name} error: ${key} ${value}`);
   }
 
   async get(key: CacheKeyArgument): Promise<unknown> {
@@ -70,18 +62,11 @@ export class RedisService implements ICacheService {
     if (!expired) this.throwException(`set expire error key: ${key}`);
   }
 
-  async hGet(
-    key: CacheKeyArgument,
-    field: CacheKeyArgument
-  ): Promise<unknown | unknown[]> {
+  async hGet(key: CacheKeyArgument, field: CacheKeyArgument): Promise<unknown | unknown[]> {
     return await this.client.hGet(key, field);
   }
 
-  async hSet(
-    key: CacheKeyArgument,
-    field: CacheKeyArgument,
-    value: CacheValeuArgument
-  ): Promise<number> {
+  async hSet(key: CacheKeyArgument, field: CacheKeyArgument, value: CacheValeuArgument): Promise<number> {
     return await this.client.hSet(key, field, value);
   }
 
@@ -90,10 +75,6 @@ export class RedisService implements ICacheService {
   }
 
   private throwException(error: string) {
-    throw new ApiException(
-      error,
-      HttpStatus.INTERNAL_SERVER_ERROR,
-      RedisService.name
-    );
+    throw new ApiException(error, HttpStatus.INTERNAL_SERVER_ERROR, RedisService.name);
   }
 }
