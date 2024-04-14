@@ -7,8 +7,10 @@ import { GlobalModule } from './global/module';
 import { HealthModule } from './health/module';
 import { AuthModule } from './auth/module';
 import { UserModule } from './user/module';
+import { AWSModule } from './aws/module';
+import { UploadModule } from './upload/module';
 
 @Module({
-  imports: [HealthModule, GlobalModule, AuthDatabaseModule, TokenModule, AuthModule, UserModule, LoggerModule],
+  imports: [HealthModule, GlobalModule, AuthDatabaseModule, TokenModule, AuthModule, UserModule, AWSModule, UploadModule, LoggerModule],
 })
 export class MainModule {}
