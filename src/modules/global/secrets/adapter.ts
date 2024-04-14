@@ -21,12 +21,22 @@ export abstract class ISecretsService {
     port: number;
     url: string;
   };
-
+  jwt: {
+    accessSecret: string;
+    refreshSecret: string;
+    accessExpires: string; //
+    refreshExpires: string; // number in minutes
+  };
   authAPI: {
     port: number;
     jwtToken: string;
     url: string;
   };
-
+  aws: {
+    accessKeyId: string;
+    secretAccessKey: string;
+    region: string;
+    bucketName: string;
+  };
   GITHUB_SCRAP_API: string;
 }
