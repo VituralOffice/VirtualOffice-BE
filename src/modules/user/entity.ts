@@ -1,16 +1,30 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, MinLength } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, MinLength, IsEmail } from 'class-validator';
+import { Exclude } from 'class-transformer';
+import { User } from './schema';
 
-import { User } from "./schema";
-
-export class UserEntity implements User {
+export class UserEntity extends User {
+  @ApiProperty()
   id?: string;
+
   @ApiProperty()
   @IsNotEmpty()
-  @MinLength(4)
-  login: string;
+  @IsEmail()
+  email: string;
+
   @ApiProperty()
   @IsNotEmpty()
-  @MinLength(4)
-  pass: string;
+  fullname: string;
+
+  @ApiProperty()
+  avatar: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  role: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @Exclude()
+  password: string;
 }

@@ -1,5 +1,5 @@
-import { HttpStatus } from "@nestjs/common";
-import { ApiException } from "src/utils";
+import { HttpStatus } from '@nestjs/common';
+import { ApiException } from 'src/common';
 import {
   FilterQuery,
   Model,
@@ -8,32 +8,25 @@ import {
   SaveOptions,
   UpdateQuery,
   UpdateWithAggregationPipeline,
-} from "mongoose";
-import { Document } from "mongoose";
+} from 'mongoose';
+import { Document } from 'mongoose';
 
-import { IRepository } from "./adapter";
-import { CreatedModel, RemovedModel, UpdatedModel } from "./types";
+import { IRepository } from './adapter';
+import { CreatedModel, RemovedModel, UpdatedModel } from './types';
 
 export class Repository<T extends Document> implements IRepository<T> {
   constructor(private readonly model: Model<T>) {}
 
   async isConnected(): Promise<void> {
     if (this.model.db.readyState !== 1)
-      throw new ApiException(
-        `db ${this.model.db.name} disconnected`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        "Database"
-      );
+      throw new ApiException(`db ${this.model.db.name} disconnected`, HttpStatus.INTERNAL_SERVER_ERROR, 'Database');
   }
 
-  async create(
-    document: object,
-    saveOptions?: SaveOptions
-  ): Promise<CreatedModel> {
+  async create(document: object): Promise<T> {
     const createdEntity = new this.model(document);
-    const savedResult = await createdEntity.save(saveOptions);
-
-    return { id: savedResult.id, created: !!savedResult.id };
+    const savedResult = await createdEntity.save();
+    const result = await this.findById(savedResult.id);
+    return result;
   }
 
   async find(filter: FilterQuery<T>, options?: QueryOptions): Promise<T[]> {
@@ -60,7 +53,7 @@ export class Repository<T extends Document> implements IRepository<T> {
   async updateOne(
     filter: FilterQuery<T>,
     updated: UpdateWithAggregationPipeline | UpdateQuery<T>,
-    options?: MongooseUpdateQueryOptions
+    options?: MongooseUpdateQueryOptions,
   ): Promise<UpdatedModel> {
     return await this.model.updateOne(filter, updated, options);
   }
@@ -68,7 +61,7 @@ export class Repository<T extends Document> implements IRepository<T> {
   async updateMany(
     filter: FilterQuery<T>,
     updated: UpdateWithAggregationPipeline | UpdateQuery<T>,
-    options?: MongooseUpdateQueryOptions
+    options?: MongooseUpdateQueryOptions,
   ): Promise<UpdatedModel> {
     return await this.model.updateMany(filter, updated, options);
   }
