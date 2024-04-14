@@ -1,5 +1,5 @@
-import { HttpException } from "@nestjs/common";
-import { ApiException } from "src/utils";
+import { HttpException } from '@nestjs/common';
+import { ApiException } from 'src/common';
 
 export type MessageType = {
   /**
