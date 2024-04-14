@@ -1,10 +1,21 @@
-import { Controller, HttpCode, ParseFilePipeBuilder, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  FileTypeValidator,
+  HttpCode,
+  MaxFileSizeValidator,
+  ParseFilePipe,
+  ParseFilePipeBuilder,
+  Post,
+  Request,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { IUploadService } from './adapter';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 
 @Controller('upload')
-@ApiTags("upload")
+@ApiTags('upload')
 export class UploadController {
   constructor(private readonly uploadService: IUploadService) {}
   @HttpCode(200)
@@ -24,20 +35,15 @@ export class UploadController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadedFile(
-    new ParseFilePipeBuilder()
-    .addFileTypeValidator({
-      fileType: 'jpeg',
-    })
-    .addFileTypeValidator({
-      fileType: 'png',
-    })
-    .addMaxSizeValidator({
-      maxSize: 50*1024
-    })
-    .build({
-      errorHttpStatusCode: 422
-    }),
-  ) file: Express.Multer.File) {
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1000 * 1000 * 50 }),
+          new FileTypeValidator({ fileType: /image\/jpeg|png/ }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
     const result = await this.uploadService.upload(file.buffer, file.originalname);
     return {
       result,
