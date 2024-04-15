@@ -14,6 +14,7 @@ import { APP_DESCRIPTION, APP_NAME, APP_VERSION } from './constant';
 import { Server, LobbyRoom } from 'colyseus';
 import { monitor } from '@colyseus/monitor';
 import { ExpressAdapter } from '@nestjs/platform-express';
+import * as multer from 'multer';
 import * as express from 'express';
 import * as cors from 'cors';
 import * as http from 'node:http';
@@ -30,6 +31,8 @@ async function bootstrap() {
   const server = new Server({
     server: httpServer,
   });
+  const upload = multer();
+  app.use('/v1/upload', upload.single('file'));
   server.define(RoomType.LOBBY, LobbyRoom);
   server.define(RoomType.PUBLIC, VOffice, {
     name: 'Public Lobby',
@@ -74,7 +77,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(nest, config);
   SwaggerModule.setup(SWAGGER_API_ROOT, nest, document);
   loggerService.log(`🟢 ${APP_NAME} listening at ${bold(PORT)} on ${bold(ENV?.toUpperCase())} 🟢\n`);
-  nest.init();
+  await nest.init();
   await server.listen(PORT);
   const openApiURL = `${url}/${SWAGGER_API_ROOT}`;
   loggerService.log(`🔵 swagger listening at ${bold(openApiURL)}`);
