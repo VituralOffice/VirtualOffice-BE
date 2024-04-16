@@ -14,7 +14,7 @@ export type TokenDocument = Token & Document;
 })
 export class Token {
   @Prop({ type: mongoose.Types.ObjectId, ref: `User` })
-  user: User;
+  user: string;
   @Prop({
     required: true,
   })

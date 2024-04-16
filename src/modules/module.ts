@@ -29,24 +29,24 @@ import { ISecretsService } from './global/secrets/adapter';
         transport: {
           host: secretsService.smtp.host,
           port: secretsService.smtp.port,
-          ignoreTLS: true,
-          secure: false,
           auth: {
             user: secretsService.smtp.auth.user,
             pass: secretsService.smtp.auth.pass,
+          },
+          from: secretsService.smtp.from,
         },
         defaults: {
-          from: '"No Reply" <no-reply@localhost>',
+          from: secretsService.smtp.from,
         },
         preview: true,
         template: {
-          dir: process.cwd() + '/email/templates/',
+          dir: process.cwd() + '/src/modules/email/templates/',
           adapter: new HandlebarsAdapter(),
           options: {
             strict: true,
           },
         },
-      }}),
+      }),
       inject: [ISecretsService],
     }),
   ],
