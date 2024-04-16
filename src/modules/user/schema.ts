@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { OAUTH_PROVIDER } from 'src/common/enum/oauth-provider';
 import { ROLE } from 'src/common/enum/role';
 
 export type UserDocument = User & Document;
@@ -22,6 +23,12 @@ export class User {
   @Prop({ unique: true, index: true, required: true })
   email: string;
   @Prop({
+    default: OAUTH_PROVIDER.LOCAL,
+  })
+  provider: string;
+  @Prop()
+  providerId: string;
+  @Prop({
     required: true,
   })
   fullname: string;
@@ -31,9 +38,7 @@ export class User {
     default: ROLE.USER,
   })
   role: string;
-  @Prop({
-    required: true,
-  })
+  @Prop()
   password: string;
   @Prop({
     default: false,

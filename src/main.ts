@@ -25,7 +25,6 @@ async function bootstrap() {
   app.use(cors());
   app.use(express.json());
   app.use('/colyseus', monitor());
-
   const nest = await NestFactory.create(MainModule, new ExpressAdapter(app));
   const httpServer = http.createServer(app);
   const server = new Server({
