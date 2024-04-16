@@ -1,7 +1,7 @@
 import { HttpStatus } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { ApiException } from 'src/common/exception';
-import { createClient, RedisClientOptions, RedisClientType } from 'redis';
+import { createClient, RedisClientOptions, RedisClientType, SetOptions } from 'redis';
 
 import { ILoggerService } from '../global/logger/adapter';
 import { ICacheService } from './adapter';
@@ -26,12 +26,12 @@ export class RedisService implements ICacheService {
     return this.client;
   }
 
-  async set(key: CacheKeyArgument, value: CacheValeuArgument, config?: unknown): Promise<void> {
+  async set(key: CacheKeyArgument, value: CacheValeuArgument, config?: SetOptions): Promise<void> {
     const setResult = await this.client.set(key, value, config);
     if (setResult !== 'OK') this.throwException(`cache ${this.set.name} error: ${key} ${value}`);
   }
 
-  async get(key: CacheKeyArgument): Promise<unknown> {
+  async get(key: CacheKeyArgument): Promise<string> {
     const getResult = await this.client.get(key);
     if (!getResult)
       this.logger.warn({

@@ -3,15 +3,18 @@ import { ApiException } from 'src/common';
 
 import { IUserRepository } from '../user/adapter';
 import { UserEntity } from '../user/entity';
-import { IAuthService, TokenResult } from './adapter';
+import { IAuthService, OtpPayload, TokenResult } from './adapter';
 import { CreateUserDto, LoginDto } from './dto';
-import { comparePassword, hashPassword, randomHash } from 'src/common/crypto/bcrypt';
+import { genOtp, hashPassword } from 'src/common/crypto/bcrypt';
 import { ITokenService } from '../token/adapter';
 import { ISecretsService } from '../global/secrets/adapter';
 import { TOKEN_TYPE } from '../token/enum';
 import { JwtPayload } from './jwt/jwt.strategy';
 import { MailerService } from '@nestjs-modules/mailer';
-
+import { ICacheService } from '../cache/adapter';
+import { ExceedIncorrectOtpTryException, OtpExpiredException, UserNotFoundException } from './exception';
+const OTP_TTL = 30 * 60; //30m
+const INCORRECT_ENTER_OTP_TIME = 5
 @Injectable()
 export class AuthService implements IAuthService {
   constructor(
@@ -19,15 +22,19 @@ export class AuthService implements IAuthService {
     private readonly tokenService: ITokenService,
     private readonly secretService: ISecretsService,
     private readonly mailService: MailerService,
+    private readonly cacheService: ICacheService
   ) {}
 
   async login(payload: LoginDto): Promise<UserEntity> {
-    const user = await this.userRepository.findOne({
+    let user = await this.userRepository.findOne({
       email: payload.email,
     });
-    if (!user) throw new ApiException(`user not found`, HttpStatus.NOT_FOUND);
-    if (!comparePassword(payload.password, user.password))
-      throw new ApiException(`invalid password`, HttpStatus.BAD_REQUEST);
+    if (!user) {
+      const userEntity = new UserEntity()
+      userEntity.email = payload.email;
+      userEntity.provider = 'local';
+      user = await this.userRepository.create(userEntity)
+    }
     return user;
   }
   async signPairToken(user: UserEntity): Promise<TokenResult> {
@@ -53,44 +60,45 @@ export class AuthService implements IAuthService {
       refreshToken,
     };
   }
-  async register(payload: CreateUserDto): Promise<UserEntity> {
-    const user = await this.userRepository.findOne({
-      email: payload.email,
-    });
-    if (user) throw new ApiException(`email already exist`, HttpStatus.BAD_REQUEST);
-    const newUser = new UserEntity();
-    newUser.email = payload.email;
-    newUser.fullname = payload.fullname;
-    newUser.password = hashPassword(payload.password);
-    return this.userRepository.create(newUser);
+  async genOtp(payload: UserEntity): Promise<string> {
+    const otp = genOtp()
+    const key = `user_with_email_${payload.email}`;
+    await this.cacheService.set(key, otp, { EX: OTP_TTL });
+    return otp
   }
   // todo: verify registered user
-  async sendConfirmLink(payload: UserEntity): Promise<void> {
-    const confirmToken = randomHash();
-    const url = `${this.secretService.APP_URL}/confirm_email?token=${confirmToken}`
-    await this.tokenService.save({
-      token: confirmToken,
-      type: TOKEN_TYPE.CONFIRM,
-      user: payload,
-    });
-    // ignore
+  async sendOtp(payload: OtpPayload): Promise<void> {
     // todo: handle mail correctly
     this.mailService.sendMail({
       to: payload.email,
-      subject: 'Confirm your email',
-      template: 'confirm_email',
+      from: `VOffice <${this.secretService.smtp.from}>`,
+      subject: 'Your VOffice one-time password',
+      template: 'otp',
       context: {
-        url,
+        otp: payload.otp,
       },
     });
   }
-  async verifyEmail(token: string): Promise<UserEntity> {
-    const tokenDoc = await this.tokenService.findTokenConfirm(token);
-    if (!tokenDoc) throw new ApiException(`token invalid`, 404)
-    const user = await this.userRepository.findById(tokenDoc.user);
-    if (!user) throw new ApiException(`user not found`, 404)
+  async verifyOtp(payload: OtpPayload): Promise<UserEntity> {
+    const user = await this.userRepository.findOne({ email: payload.email })
+    if (!user) throw new UserNotFoundException()
+    const otpKey = `user_with_email_${payload.email}`;
+    const incorrectKey = `user_enter_otp_incorrect_${payload.email}`
+    const otpCache = await this.cacheService.get(otpKey);
+    if (!otpCache) throw new OtpExpiredException()
+    if (otpCache !== payload.otp) {
+      let incorrectTimeStr = await this.cacheService.get(incorrectKey) || '0';
+      let incorrectTime = parseInt(incorrectTimeStr, 10)
+      if (incorrectTime === INCORRECT_ENTER_OTP_TIME) throw new ExceedIncorrectOtpTryException()
+      await this.cacheService.set(incorrectKey, String(++incorrectTime), {
+        EX: OTP_TTL
+      })
+      throw new ApiException(`invalid otp`, 400)
+    }
     user.isVerified = true;
     await user.save()
+    this.cacheService.del(otpKey)
+    this.cacheService.del(incorrectKey)
     return user
   }
 }

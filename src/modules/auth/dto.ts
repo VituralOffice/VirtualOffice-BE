@@ -20,12 +20,14 @@ export class LoginDto {
   @IsNotEmpty()
   @IsEmail()
   email: string;
-  @ApiProperty()
-  @IsNotEmpty()
-  password: string;
 }
-export class ConfirmEmailDto {
+export class VerifyEmailDto {
   @ApiProperty()
   @IsNotEmpty()
-  token: string
+  @IsEmail()
+  email: string
+
+  @ApiProperty()
+  @IsNotEmpty()
+  otp: string
 }

@@ -13,8 +13,10 @@ import {
 import { IUploadService } from './adapter';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { Public } from 'src/common/decorators/public.decorator';
 
 @Controller('upload')
+@Public()
 @ApiTags('upload')
 export class UploadController {
   constructor(private readonly uploadService: IUploadService) {}
