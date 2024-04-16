@@ -29,7 +29,6 @@ jobs:
       - name: multiple command
         uses: appleboy/ssh-action@v1.0.0
         env:
-          IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
           TAG: ${{ env.TAG }}
         with:
           host: ${{ secrets.HOST }}
@@ -38,5 +37,6 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             cd /home/ubuntu/projects/VirtualOffice-BE
-            sed -i '/^\s*api\s*:/,/^\s*$/ {/image:/ s/:.*/: $IMAGE_NAME:$TAG/}' docker-compose.yaml
-            docker compose up -d
+            export TAG=$TAG
+            envsubst < docker-compose.template.yaml > docker-compose.yaml 
+            docker compose -f docker-compose.yaml up -d
