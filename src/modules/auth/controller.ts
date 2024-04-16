@@ -47,6 +47,7 @@ export class AuthController {
   @Public()
   async register(@Body() payload: CreateUserDto, @Res() res: Response): Promise<unknown> {
     const user = await this.authService.register(payload);
+    await this.authService.sendConfirmLink(user);
     const { accessToken, refreshToken } = await this.authService.signPairToken(user);
     res.cookie(JWT_ACCESS_KEY, accessToken, {
       httpOnly: true,
@@ -54,7 +55,7 @@ export class AuthController {
       sameSite: true,
       path: '/',
     });
-    res.cookie(JWT_REFRESH_KEY, accessToken, {
+    res.cookie(JWT_REFRESH_KEY, refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: true,
