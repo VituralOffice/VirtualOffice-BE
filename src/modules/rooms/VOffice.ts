@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { Room, Client, ServerError } from "colyseus";
 import { Dispatcher } from "@colyseus/command";
 import {

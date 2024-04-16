@@ -5,11 +5,12 @@ import { IUserRepository } from '../user/adapter';
 import { UserEntity } from '../user/entity';
 import { IAuthService, TokenResult } from './adapter';
 import { CreateUserDto, LoginDto } from './dto';
-import { comparePassword, hashPassword } from 'src/common/crypto/bcrypt';
-import { CreatedModel } from '../database/types';
+import { comparePassword, hashPassword, randomHash } from 'src/common/crypto/bcrypt';
 import { ITokenService } from '../token/adapter';
 import { ISecretsService } from '../global/secrets/adapter';
 import { TOKEN_TYPE } from '../token/enum';
+import { JwtPayload } from './jwt/jwt.strategy';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -17,6 +18,7 @@ export class AuthService implements IAuthService {
     private readonly userRepository: IUserRepository,
     private readonly tokenService: ITokenService,
     private readonly secretService: ISecretsService,
+    private readonly mailService: MailerService,
   ) {}
 
   async login(payload: LoginDto): Promise<UserEntity> {
@@ -30,12 +32,16 @@ export class AuthService implements IAuthService {
   }
   async signPairToken(user: UserEntity): Promise<TokenResult> {
     // revoke previous token
+    const payload: JwtPayload = {
+      userId: user.id,
+      email: user.email,
+    };
     await this.tokenService.revoke(user);
-    const accessToken = this.tokenService.sign({ userId: user.id }, this.secretService.jwt.accessSecret, {
+    const accessToken = this.tokenService.sign(payload, this.secretService.jwt.accessSecret, {
       algorithm: 'HS256',
       expiresIn: this.secretService.jwt.accessExpires,
     });
-    const refreshToken = this.tokenService.sign({ userId: user.id }, this.secretService.jwt.refreshSecret, {
+    const refreshToken = this.tokenService.sign(payload, this.secretService.jwt.refreshSecret, {
       algorithm: 'HS256',
       expiresIn: this.secretService.jwt.refreshExpires,
     });
@@ -59,4 +65,32 @@ export class AuthService implements IAuthService {
     return this.userRepository.create(newUser);
   }
   // todo: verify registered user
+  async sendConfirmLink(payload: UserEntity): Promise<void> {
+    const confirmToken = randomHash();
+    const url = `${this.secretService.APP_URL}/confirm_email?token=${confirmToken}`
+    await this.tokenService.save({
+      token: confirmToken,
+      type: TOKEN_TYPE.CONFIRM,
+      user: payload,
+    });
+    // ignore
+    // todo: handle mail correctly
+    this.mailService.sendMail({
+      to: payload.email,
+      subject: 'Confirm your email',
+      template: 'confirm_email',
+      context: {
+        url,
+      },
+    });
+  }
+  async verifyEmail(token: string): Promise<UserEntity> {
+    const tokenDoc = await this.tokenService.findTokenConfirm(token);
+    if (!tokenDoc) throw new ApiException(`token invalid`, 404)
+    const user = await this.userRepository.findById(tokenDoc.user);
+    if (!user) throw new ApiException(`user not found`, 404)
+    user.isVerified = true;
+    await user.save()
+    return user
+  }
 }

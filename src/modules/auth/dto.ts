@@ -24,3 +24,8 @@ export class LoginDto {
   @IsNotEmpty()
   password: string;
 }
+export class ConfirmEmailDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  token: string
+}

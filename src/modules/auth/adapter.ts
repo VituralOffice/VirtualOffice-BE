@@ -9,5 +9,7 @@ export abstract class IAuthService {
   abstract login(payload: LoginDto): Promise<UserEntity>;
   abstract register(payload: CreateUserDto): Promise<UserEntity>;
   abstract signPairToken(payload: UserEntity): Promise<TokenResult>;
+  abstract sendConfirmLink(payload: UserEntity): Promise<void>;
+  abstract verifyEmail(token: string): Promise<UserEntity>
   // abstract verify(token: string): Promise<UserEntity>;
 }
