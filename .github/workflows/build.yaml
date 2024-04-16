@@ -30,6 +30,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.0
         env:
           IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+          TAG: ${{ env.TAG }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
