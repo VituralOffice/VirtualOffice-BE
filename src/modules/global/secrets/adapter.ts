@@ -38,5 +38,18 @@ export abstract class ISecretsService {
     region: string;
     bucketName: string;
   };
-  GITHUB_SCRAP_API: string;
+  oauthGoogle: {
+    clientId: string;
+    clientSecret: string;
+    redirectUrl: string;
+  };
+  smtp: {
+    host: string;
+    port: number;
+    auth: {
+      user: string;
+      pass: string;
+    };
+    from: string;
+  };
 }

@@ -24,7 +24,6 @@ export class UserEntity extends User {
   role: string;
 
   @ApiProperty()
-  @IsNotEmpty()
   @Exclude()
   password: string;
 }

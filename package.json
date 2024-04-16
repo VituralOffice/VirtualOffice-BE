@@ -27,11 +27,14 @@
   "dependencies": {
     "@colyseus/command": "^0.1.7",
     "@colyseus/monitor": "^0.14.0",
+    "@nestjs-modules/mailer": "^1.11.2",
     "@nestjs/cli": "^10.3.2",
     "@nestjs/common": "^10.3.7",
     "@nestjs/config": "^3.2.2",
     "@nestjs/core": "^10.3.7",
+    "@nestjs/jwt": "^10.2.0",
     "@nestjs/mongoose": "^10.0.6",
+    "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.3.7",
     "@nestjs/swagger": "^7.3.1",
     "@nestjs/testing": "^10.3.7",
@@ -45,12 +48,16 @@
     "colyseus": "^0.14.0",
     "convert-pino-request-to-curl": "^0.0.29",
     "express": "^4.19.2",
+    "handlebars": "^4.7.8",
     "jaeger-client": "^3.19.0",
     "jsonwebtoken": "^9.0.2",
     "luxon": "^3.4.4",
     "mongoose": "^8.3.1",
     "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.13",
     "opentracing": "^0.14.7",
+    "passport-google-oauth20": "^2.0.0",
+    "passport-jwt": "^4.0.1",
     "phaser": "^3.80.1",
     "pino": "^8.20.0",
     "pino-elasticsearch": "^8.0.0",
@@ -68,6 +75,9 @@
     "@types/bcrypt": "^5.0.2",
     "@types/jest": "^29.5.12",
     "@types/jsonwebtoken": "^9.0.6",
-    "@types/multer": "^1.4.11"
+    "@types/multer": "^1.4.11",
+    "@types/nodemailer": "^6.4.14",
+    "@types/passport-google-oauth20": "^2.0.14",
+    "@types/passport-jwt": "^4.0.1"
   }
 }
