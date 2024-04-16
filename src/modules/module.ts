@@ -27,14 +27,13 @@ import { ISecretsService } from './global/secrets/adapter';
     MailerModule.forRootAsync({
       useFactory: (secretsService: ISecretsService) => ({
         transport: {
-          host: 'localhost',
-          port: 1025,
+          host: secretsService.smtp.host,
+          port: secretsService.smtp.port,
           ignoreTLS: true,
           secure: false,
           auth: {
-            user: process.env.MAILDEV_INCOMING_USER,
-            pass: process.env.MAILDEV_INCOMING_PASS,
-          },
+            user: secretsService.smtp.auth.user,
+            pass: secretsService.smtp.auth.pass,
         },
         defaults: {
           from: '"No Reply" <no-reply@localhost>',
@@ -47,7 +46,7 @@ import { ISecretsService } from './global/secrets/adapter';
             strict: true,
           },
         },
-      }),
+      }}),
       inject: [ISecretsService],
     }),
   ],

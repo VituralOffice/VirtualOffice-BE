@@ -5,11 +5,12 @@ import { IUserRepository } from '../user/adapter';
 import { UserEntity } from '../user/entity';
 import { IAuthService, TokenResult } from './adapter';
 import { CreateUserDto, LoginDto } from './dto';
-import { comparePassword, hashPassword } from 'src/common/crypto/bcrypt';
+import { comparePassword, hashPassword, randomHash } from 'src/common/crypto/bcrypt';
 import { ITokenService } from '../token/adapter';
 import { ISecretsService } from '../global/secrets/adapter';
 import { TOKEN_TYPE } from '../token/enum';
 import { JwtPayload } from './jwt/jwt.strategy';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -17,6 +18,7 @@ export class AuthService implements IAuthService {
     private readonly userRepository: IUserRepository,
     private readonly tokenService: ITokenService,
     private readonly secretService: ISecretsService,
+    private readonly mailService: MailerService,
   ) {}
 
   async login(payload: LoginDto): Promise<UserEntity> {
@@ -63,4 +65,22 @@ export class AuthService implements IAuthService {
     return this.userRepository.create(newUser);
   }
   // todo: verify registered user
+  async sendConfirmLink(payload: UserEntity): Promise<void> {
+    const confirmToken = randomHash();
+    await this.tokenService.save({
+      token: confirmToken,
+      type: TOKEN_TYPE.CONFIRM,
+      user: payload,
+    });
+    // ignore
+    // todo: handle mail correctly
+    this.mailService.sendMail({
+      to: payload.email,
+      subject: 'Confirm your email',
+      template: 'confirm_email',
+      context: {
+        token: confirmToken,
+      },
+    });
+  }
 }
