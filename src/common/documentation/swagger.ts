@@ -1,7 +1,8 @@
-import { ApiResponseOptions } from '@nestjs/swagger';
+import { ApiProperty, ApiResponse, ApiResponseOptions } from '@nestjs/swagger';
 
 import { ErrorModel } from '../exception';
 import * as htttpStatus from '../static/htttp-status.json';
+import { HttpStatus, Type, applyDecorators } from '@nestjs/common';
 
 type SwaggerError = {
   status: number;
@@ -77,3 +78,42 @@ export const Swagger = {
     };
   },
 };
+export interface AppResponse {
+  result: any
+  code: number
+  message: string
+  metadata: any
+}
+
+export const ApiSchemaRes = (schema: AppResponse): Type<AppResponse> => {
+  class SchemaResponse implements AppResponse {
+    name: string;
+    @ApiProperty({ name: 'result', type: 'any', default: null })
+    result: any;
+    @ApiProperty({ name: 'metadata', type: 'any', default: {} })
+    metadata: any;
+
+    @ApiProperty({ name: 'code', type: 'number', default: schema.code })
+    code: number
+
+    @ApiProperty({ name: 'message', type: 'string', default: schema.message })
+    message: string
+  }
+  return SchemaResponse
+}
+
+export const ApiFailedRes = (...schemas: AppResponse[]) => {
+  return applyDecorators(
+    ApiResponse({
+      status: schemas[0].code,
+      content: {
+        'application/json': {
+          examples: schemas.reduce((list, schema) => {
+            list[schema.message] = { value: schema }
+            return list
+          }, {}),
+        },
+      },
+    }),
+  )
+}
