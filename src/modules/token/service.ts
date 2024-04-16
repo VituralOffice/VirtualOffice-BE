@@ -8,14 +8,15 @@ import { SaveTokenPayload } from './types';
 import { CreatedModel } from '../database/types';
 import { User } from '../user/schema';
 import { TokenEntity } from './entity';
+import { JwtPayload } from '../auth/jwt/jwt.strategy';
 
 @Injectable()
 export class TokenService implements ITokenService {
   constructor(private readonly secret: ISecretsService, private tokenRepository: ITokenRepository) {}
 
-  sign(model: object, secret: string, options?: jwt.SignOptions): string {
+  sign(payload: JwtPayload, secret: string, options?: jwt.SignOptions): string {
     const token = jwt.sign(
-      model,
+      payload,
       secret,
       options || {
         expiresIn: 300, // 5 minutes

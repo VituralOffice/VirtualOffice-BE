@@ -6,10 +6,10 @@ import { UserEntity } from '../user/entity';
 import { IAuthService, TokenResult } from './adapter';
 import { CreateUserDto, LoginDto } from './dto';
 import { comparePassword, hashPassword } from 'src/common/crypto/bcrypt';
-import { CreatedModel } from '../database/types';
 import { ITokenService } from '../token/adapter';
 import { ISecretsService } from '../global/secrets/adapter';
 import { TOKEN_TYPE } from '../token/enum';
+import { JwtPayload } from './jwt/jwt.strategy';
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -30,12 +30,16 @@ export class AuthService implements IAuthService {
   }
   async signPairToken(user: UserEntity): Promise<TokenResult> {
     // revoke previous token
+    const payload: JwtPayload = {
+      userId: user.id,
+      email: user.email,
+    };
     await this.tokenService.revoke(user);
-    const accessToken = this.tokenService.sign({ userId: user.id }, this.secretService.jwt.accessSecret, {
+    const accessToken = this.tokenService.sign(payload, this.secretService.jwt.accessSecret, {
       algorithm: 'HS256',
       expiresIn: this.secretService.jwt.accessExpires,
     });
-    const refreshToken = this.tokenService.sign({ userId: user.id }, this.secretService.jwt.refreshSecret, {
+    const refreshToken = this.tokenService.sign(payload, this.secretService.jwt.refreshSecret, {
       algorithm: 'HS256',
       expiresIn: this.secretService.jwt.refreshExpires,
     });

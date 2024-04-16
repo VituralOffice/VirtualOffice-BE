@@ -53,5 +53,18 @@ export class SecretsService extends ConfigService implements ISecretsService {
     region: this.get<string>(`AWS_REGION`),
     bucketName: this.get<string>(`AWS_BUCKET_NAME`),
   };
-  GITHUB_SCRAP_API = this.get('GITHUB_SCRAP_API');
+  oauthGoogle = {
+    clientId: this.get<string>(`OAUTH_GOOGLE_ID`),
+    clientSecret: this.get<string>(`OAUTH_GOOGLE_SECRET`),
+    redirectUrl: this.get<string>(`OAUTH_GOOGLE_REDIRECT_URL`),
+  };
+  smtp = {
+    host: this.get<string>(`SMTP_HOST`),
+    port: this.get<number>(`SMTP_PORT`),
+    auth: {
+      user: this.get<string>(`SMTP_USER`),
+      pass: this.get<string>(`SMTP_PASS`),
+    },
+    from: this.get<string>(`SMTP_FROM`),
+  };
 }
