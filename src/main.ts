@@ -25,7 +25,6 @@ async function bootstrap() {
   app.use(cors());
   app.use(express.json());
   app.use('/colyseus', monitor());
-
   const nest = await NestFactory.create(MainModule, new ExpressAdapter(app));
   const httpServer = http.createServer(app);
   const server = new Server({
@@ -47,9 +46,11 @@ async function bootstrap() {
     }),
   );
   const loggerService = nest.get(ILoggerService);
+  const secretsService = nest.get(ISecretsService);
+
   loggerService.setApplication(APP_NAME);
   nest.enableCors();
-  nest.useGlobalFilters(new AppExceptionFilter(loggerService));
+  nest.useGlobalFilters(new AppExceptionFilter(loggerService, secretsService));
   nest.useGlobalInterceptors(
     new ExceptionInterceptor(),
     new HttpLoggerInterceptor(loggerService),

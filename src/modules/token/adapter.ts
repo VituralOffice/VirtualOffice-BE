@@ -7,6 +7,7 @@ export abstract class ITokenService {
   abstract verify<T = jwt.JwtPayload>(token: string, secret: string): Promise<T | string | unknown>;
   abstract decode<T = jwt.JwtPayload>(token: string): T | string | unknown;
   abstract save(data: SaveTokenPayload): Promise<TokenEntity>;
+  abstract findTokenConfirm(token: string): Promise<TokenEntity| null>;
   /**
    *
    * @param userId

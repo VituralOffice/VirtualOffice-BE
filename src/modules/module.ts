@@ -9,6 +9,9 @@ import { AuthModule } from './auth/module';
 import { UserModule } from './user/module';
 import { AWSModule } from './aws/module';
 import { UploadModule } from './upload/module';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { ISecretsService } from './global/secrets/adapter';
 @Global()
 @Module({
   imports: [
@@ -21,6 +24,31 @@ import { UploadModule } from './upload/module';
     AWSModule,
     UploadModule,
     LoggerModule,
+    MailerModule.forRootAsync({
+      useFactory: (secretsService: ISecretsService) => ({
+        transport: {
+          host: secretsService.smtp.host,
+          port: secretsService.smtp.port,
+          auth: {
+            user: secretsService.smtp.auth.user,
+            pass: secretsService.smtp.auth.pass,
+          },
+          from: secretsService.smtp.from,
+        },
+        defaults: {
+          from: secretsService.smtp.from,
+        },
+        preview: true,
+        template: {
+          dir: process.cwd() + '/src/modules/email/templates/',
+          adapter: new HandlebarsAdapter(),
+          options: {
+            strict: true,
+          },
+        },
+      }),
+      inject: [ISecretsService],
+    }),
   ],
 })
 export class MainModule {}
