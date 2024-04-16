@@ -23,6 +23,8 @@ jobs:
           export TAG=$(date +'%s')
           docker build -f Dockerfile -t $IMAGE_NAME:$TAG .
           docker push $IMAGE_NAME:$TAG
+        env:
+          IMAGE_NAME: ${{secrets.IMAGE_NAME}}
 
       - name: multiple command
         uses: appleboy/ssh-action@v1.0.0
