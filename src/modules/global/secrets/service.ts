@@ -12,7 +12,8 @@ export class SecretsService extends ConfigService implements ISecretsService {
   }
 
   ELK_URL = this.get('ELK_URL');
-
+  API_URL = this.get('API_URL');
+  APP_URL = this.get('APP_URL');
   MONGO_EXPRESS_URL = this.get('MONGO_EXPRESS_URL');
   REDIS_COMMANDER_URL = this.get('REDIS_COMMANDER_URL');
   JEAGER_URL = this.get('JEAGER_URL');

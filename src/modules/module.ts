@@ -27,21 +27,20 @@ import { ISecretsService } from './global/secrets/adapter';
     MailerModule.forRootAsync({
       useFactory: (secretsService: ISecretsService) => ({
         transport: {
-          host: 'localhost',
-          port: 1025,
-          ignoreTLS: true,
-          secure: false,
+          host: secretsService.smtp.host,
+          port: secretsService.smtp.port,
           auth: {
-            user: process.env.MAILDEV_INCOMING_USER,
-            pass: process.env.MAILDEV_INCOMING_PASS,
+            user: secretsService.smtp.auth.user,
+            pass: secretsService.smtp.auth.pass,
           },
+          from: secretsService.smtp.from,
         },
         defaults: {
-          from: '"No Reply" <no-reply@localhost>',
+          from: secretsService.smtp.from,
         },
         preview: true,
         template: {
-          dir: process.cwd() + '/email/templates/',
+          dir: process.cwd() + '/src/modules/email/templates/',
           adapter: new HandlebarsAdapter(),
           options: {
             strict: true,
