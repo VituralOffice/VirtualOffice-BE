@@ -9,7 +9,8 @@ export abstract class ISecretsService {
   KIBANA_URL: string;
 
   LOG_LEVEL: string;
-
+  API_URL: string;
+  APP_URL: string;
   database: {
     host: string;
     port: number;

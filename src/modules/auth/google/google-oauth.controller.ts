@@ -52,6 +52,7 @@ export class GoogleOauthController {
       sameSite: true,
       path: '/',
     });
-    return res.redirect('/profile');
+    const profileRoute = `${this.secretsService.APP_URL}/profile`
+    return res.redirect(profileRoute);
   }
 }
