@@ -46,9 +46,11 @@ async function bootstrap() {
     }),
   );
   const loggerService = nest.get(ILoggerService);
+  const secretsService = nest.get(ISecretsService);
+
   loggerService.setApplication(APP_NAME);
   nest.enableCors();
-  nest.useGlobalFilters(new AppExceptionFilter(loggerService));
+  nest.useGlobalFilters(new AppExceptionFilter(loggerService, secretsService));
   nest.useGlobalInterceptors(
     new ExceptionInterceptor(),
     new HttpLoggerInterceptor(loggerService),

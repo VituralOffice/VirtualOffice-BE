@@ -1,8 +1,8 @@
-import { Body, Controller, HttpCode, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post, Query, Res } from '@nestjs/common';
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IAuthService } from './adapter';
 import { SwaggerResponse } from './swagger';
-import { CreateUserDto, LoginDto } from './dto';
+import { ConfirmEmailDto, CreateUserDto, LoginDto } from './dto';
 import { Response } from 'express';
 import { JWT_ACCESS_KEY, JWT_REFRESH_KEY } from 'src/constant';
 import { Public } from 'src/common/decorators/public.decorator';
@@ -66,5 +66,16 @@ export class AuthController {
       message: `Success`,
       code: 200,
     });
+  }
+
+  @Post('confirm')
+  @Public()
+  @ApiBody({ type: ConfirmEmailDto })
+  async confirmEmail(@Body() body: ConfirmEmailDto) {
+    const user = await this.authService.verifyEmail(body.token)
+    return {
+      result: user,
+      message: `Success`
+    }
   }
 }

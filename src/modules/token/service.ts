@@ -9,6 +9,7 @@ import { CreatedModel } from '../database/types';
 import { User } from '../user/schema';
 import { TokenEntity } from './entity';
 import { JwtPayload } from '../auth/jwt/jwt.strategy';
+import { TOKEN_TYPE } from './enum';
 
 @Injectable()
 export class TokenService implements ITokenService {
@@ -49,5 +50,8 @@ export class TokenService implements ITokenService {
       { isBlacklist: true },
     );
     return;
+  }
+  async findTokenConfirm(token: string): Promise<TokenEntity> {
+    return this.tokenRepository.findOne({ token, type: TOKEN_TYPE.CONFIRM})
   }
 }

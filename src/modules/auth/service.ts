@@ -67,6 +67,7 @@ export class AuthService implements IAuthService {
   // todo: verify registered user
   async sendConfirmLink(payload: UserEntity): Promise<void> {
     const confirmToken = randomHash();
+    const url = `${this.secretService.APP_URL}/confirm_email?token=${confirmToken}`
     await this.tokenService.save({
       token: confirmToken,
       type: TOKEN_TYPE.CONFIRM,
@@ -79,8 +80,17 @@ export class AuthService implements IAuthService {
       subject: 'Confirm your email',
       template: 'confirm_email',
       context: {
-        token: confirmToken,
+        url,
       },
     });
+  }
+  async verifyEmail(token: string): Promise<UserEntity> {
+    const tokenDoc = await this.tokenService.findTokenConfirm(token);
+    if (!tokenDoc) throw new ApiException(`token invalid`, 404)
+    const user = await this.userRepository.findById(tokenDoc.user);
+    if (!user) throw new ApiException(`user not found`, 404)
+    user.isVerified = true;
+    await user.save()
+    return user
   }
 }

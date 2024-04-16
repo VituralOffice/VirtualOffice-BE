@@ -41,7 +41,7 @@
     "@types/node": "^20.12.7",
     "aws-sdk": "^2.1599.0",
     "axios": "^1.6.8",
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "colorette": "^2.0.20",
@@ -73,7 +73,7 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@types/bcrypt": "^5.0.2",
+    "@types/bcryptjs": "^2.4.6",
     "@types/jest": "^29.5.12",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/multer": "^1.4.11",
