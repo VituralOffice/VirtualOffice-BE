@@ -10,9 +10,10 @@ import { SecretsModule } from '../global/secrets/module';
 import { GoogleOauthModule } from './google/google-oauth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth.guard';
+import { RedisModule } from '../cache/module';
 
 @Module({
-  imports: [TokenModule, UserModule, JwtAuthModule, SecretsModule, GoogleOauthModule],
+  imports: [TokenModule, UserModule, JwtAuthModule, SecretsModule, GoogleOauthModule, RedisModule],
   controllers: [AuthController],
   providers: [
     {

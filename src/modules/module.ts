@@ -29,14 +29,11 @@ import { ISecretsService } from './global/secrets/adapter';
         transport: {
           host: secretsService.smtp.host,
           port: secretsService.smtp.port,
+          name: `VOffice`,
           auth: {
             user: secretsService.smtp.auth.user,
             pass: secretsService.smtp.auth.pass,
           },
-          from: secretsService.smtp.from,
-        },
-        defaults: {
-          from: secretsService.smtp.from,
         },
         preview: true,
         template: {
