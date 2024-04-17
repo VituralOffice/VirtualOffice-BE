@@ -13,14 +13,12 @@ export class UserEntity extends User {
   email: string;
 
   @ApiProperty()
-  @IsNotEmpty()
   fullname: string;
 
   @ApiProperty()
   avatar: string;
 
   @ApiProperty()
-  @IsNotEmpty()
   role: string;
 
   @ApiProperty()
