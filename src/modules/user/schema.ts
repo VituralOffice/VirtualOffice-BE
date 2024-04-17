@@ -29,10 +29,10 @@ export class User {
   @Prop()
   providerId: string;
   @Prop({
-    required: true,
+    default: ""
   })
   fullname: string;
-  @Prop({})
+  @Prop()
   avatar: string;
   @Prop({
     default: ROLE.USER,

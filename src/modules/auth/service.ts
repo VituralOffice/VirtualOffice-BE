@@ -98,7 +98,7 @@ export class AuthService implements IAuthService {
     user.isVerified = true;
     await user.save()
     this.cacheService.del(otpKey)
-    this.cacheService.del(incorrectKey)
+    //this.cacheService.del(incorrectKey)
     return user
   }
 }
