@@ -1,6 +1,6 @@
-import { AxiosInstance, AxiosRequestConfig } from "axios";
-import { JaegerTracer } from "jaeger-client";
-import { Span, Tags } from "opentracing";
+import { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { JaegerTracer } from 'jaeger-client';
+import { Span, Tags } from 'opentracing';
 
 export type TracingType = {
   span: Span;

@@ -1,10 +1,10 @@
-import { Module } from "@nestjs/common";
-import { LoggerModule } from "src/modules/global/logger/module";
+import { Module } from '@nestjs/common';
+import { LoggerModule } from 'src/modules/global/logger/module';
 
-import { UserModule } from "../user/module";
-import { IHealthService } from "./adapter";
-import { HealthController } from "./controller";
-import { HealthService } from "./service";
+import { UserModule } from '../user/module';
+import { IHealthService } from './adapter';
+import { HealthController } from './controller';
+import { HealthService } from './service';
 
 @Module({
   imports: [UserModule, LoggerModule],

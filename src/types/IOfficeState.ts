@@ -1,4 +1,4 @@
-import { Schema, ArraySchema, SetSchema, MapSchema } from "@colyseus/schema";
+import { Schema, ArraySchema, SetSchema, MapSchema } from '@colyseus/schema';
 
 export interface IPlayer extends Schema {
   name: string;

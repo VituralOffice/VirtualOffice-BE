@@ -1,7 +1,7 @@
-import { LevelWithSilent } from "pino";
-import { HttpLogger } from "pino-http";
+import { LevelWithSilent } from 'pino';
+import { HttpLogger } from 'pino-http';
 
-import { ErrorType, MessageType } from "./type";
+import { ErrorType, MessageType } from './type';
 
 export abstract class ILoggerService<T extends HttpLogger = HttpLogger> {
   abstract pino: T;

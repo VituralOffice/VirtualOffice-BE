@@ -9,4 +9,4 @@ export const genOtp = (len = 6) => {
   const min = Math.pow(10, len - 1);
   const max = Math.pow(10, len) - 1;
   return String(Math.floor(min + Math.random() * (max - min + 1)));
-}
+};

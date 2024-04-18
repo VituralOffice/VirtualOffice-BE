@@ -1,12 +1,12 @@
 import { getModelToken } from '@nestjs/mongoose';
 import { Test } from '@nestjs/testing';
 
-import { IUserRepository } from '../adapter';
+import { UserService } from '../adapter';
 import { UserRepository } from '../repository';
 import { User } from '../schema';
 
 describe('UserRepository', () => {
-  let userRepository: IUserRepository;
+  let userService: UserService;
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -14,7 +14,7 @@ describe('UserRepository', () => {
       imports: [],
       providers: [
         {
-          provide: IUserRepository,
+          provide: UserService,
           useClass: UserRepository,
         },
         {
@@ -24,9 +24,9 @@ describe('UserRepository', () => {
       ],
     }).compile();
 
-    userRepository = app.get(IUserRepository);
+    userService = app.get(UserService);
   });
   test('should verify instance', async () => {
-    expect(userRepository).toBeInstanceOf(UserRepository);
+    expect(userService).toBeInstanceOf(UserRepository);
   });
 });

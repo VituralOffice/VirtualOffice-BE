@@ -1,6 +1,6 @@
-import { Command } from "@colyseus/command";
-import { Client } from "colyseus";
-import { IOfficeState } from "../../../types/IOfficeState";
+import { Command } from '@colyseus/command';
+import { Client } from 'colyseus';
+import { IOfficeState } from '../../../types/IOfficeState';
 
 type Payload = {
   client: Client;
@@ -9,10 +9,7 @@ type Payload = {
   anim: string;
 };
 
-export default class PlayerUpdateCommand extends Command<
-  IOfficeState,
-  Payload
-> {
+export default class PlayerUpdateCommand extends Command<IOfficeState, Payload> {
   execute(data: Payload) {
     const { client, x, y, anim } = data;
 

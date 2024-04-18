@@ -1,8 +1,8 @@
-import { Test, TestingModule } from "@nestjs/testing";
+import { Test, TestingModule } from '@nestjs/testing';
 
-import { MainModule } from "../module";
+import { MainModule } from '../module';
 
-describe("MainModule", () => {
+describe('MainModule', () => {
   let mainModule: MainModule;
 
   beforeEach(async () => {
@@ -13,7 +13,7 @@ describe("MainModule", () => {
     mainModule = app.get<MainModule>(MainModule);
   });
 
-  it("should be defined", () => {
+  it('should be defined', () => {
     expect(mainModule).toBeInstanceOf(MainModule);
   });
 });

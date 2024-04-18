@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document } from 'mongoose';
+import mongoose, { Document, Model } from 'mongoose';
 import { ROLE } from 'src/common/enum/role';
 import { User } from '../user/schema';
 import { TOKEN_TYPE } from './enum';
@@ -28,3 +28,4 @@ export class Token {
 }
 
 export const TokenSchema = SchemaFactory.createForClass(Token);
+export type TokenModel = Model<Token>;
