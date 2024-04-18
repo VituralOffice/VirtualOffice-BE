@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import mongoose, { Document, Model } from 'mongoose';
 import { OAUTH_PROVIDER } from 'src/common/enum/oauth-provider';
 import { ROLE } from 'src/common/enum/role';
 
@@ -29,7 +29,7 @@ export class User {
   @Prop()
   providerId: string;
   @Prop({
-    default: ""
+    default: '',
   })
   fullname: string;
   @Prop()
@@ -44,6 +44,9 @@ export class User {
     default: false,
   })
   isVerified: boolean;
+  @Prop({ type: mongoose.Types.ObjectId, ref: `Character` })
+  character: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+export type UserModel = Model<User>;

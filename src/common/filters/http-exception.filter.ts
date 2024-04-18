@@ -25,13 +25,16 @@ export class AppExceptionFilter implements ExceptionFilter {
       code: status,
       result: null,
       message: exception.message,
-      metadata: this.secretsService.ENV === 'development' ? {
-        code: status,
-        traceid: exception.traceid,
-        message: [errorStatus[String(status)], exception.message].find(Boolean),
-        timestamp: DateTime.fromJSDate(new Date()).setZone(process.env.TZ).toFormat('dd/MM/yyyy HH:mm:ss'),
-        path: request.url,
-      } : {}
+      metadata:
+        this.secretsService.ENV === 'development'
+          ? {
+              code: status,
+              traceid: exception.traceid,
+              message: [errorStatus[String(status)], exception.message].find(Boolean),
+              timestamp: DateTime.fromJSDate(new Date()).setZone(process.env.TZ).toFormat('dd/MM/yyyy HH:mm:ss'),
+              path: request.url,
+            }
+          : {},
     });
   }
 }

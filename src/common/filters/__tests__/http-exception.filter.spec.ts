@@ -1,13 +1,13 @@
-import { ArgumentsHost, HttpStatus } from "@nestjs/common";
-import { Test } from "@nestjs/testing";
-import { ILoggerService } from "src/modules/global/logger/adapter";
+import { ArgumentsHost, HttpStatus } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import { ILoggerService } from 'src/modules/global/logger/adapter';
 
-import { ApiException } from "../../exception";
-import { AppExceptionFilter } from "../http-exception.filter";
+import { ApiException } from '../../exception';
+import { AppExceptionFilter } from '../http-exception.filter';
 
-const mock = jest.createMockFromModule<ArgumentsHost>("@nestjs/common");
+const mock = jest.createMockFromModule<ArgumentsHost>('@nestjs/common');
 
-describe("AppExceptionFilter", () => {
+describe('AppExceptionFilter', () => {
   let appExceptionFilter: AppExceptionFilter;
 
   beforeEach(async () => {
@@ -30,21 +30,21 @@ describe("AppExceptionFilter", () => {
         status: () => ({ json: jest.fn() }),
       }),
       getRequest: jest.fn().mockReturnValue({
-        url: "url",
+        url: 'url',
       }),
     });
 
     appExceptionFilter = app.get(AppExceptionFilter);
   });
 
-  test("should catch successfully", () => {
-    const error = new ApiException("Error", HttpStatus.INTERNAL_SERVER_ERROR);
+  test('should catch successfully', () => {
+    const error = new ApiException('Error', HttpStatus.INTERNAL_SERVER_ERROR);
 
     appExceptionFilter.catch(error, mock);
   });
 
-  test("should catch successfully without code and context", () => {
-    const error = new ApiException("Error");
+  test('should catch successfully without code and context', () => {
+    const error = new ApiException('Error');
 
     error.statusCode = undefined;
     error.context = undefined;
@@ -52,8 +52,8 @@ describe("AppExceptionFilter", () => {
     appExceptionFilter.catch(error, mock);
   });
 
-  test("should catch successfully with unknown status", () => {
-    const error = new ApiException("Error", 1000);
+  test('should catch successfully with unknown status', () => {
+    const error = new ApiException('Error', 1000);
 
     error.statusCode = undefined;
     error.context = undefined;
@@ -61,8 +61,8 @@ describe("AppExceptionFilter", () => {
     appExceptionFilter.catch(error, mock);
   });
 
-  test("should catch successfully without error message", () => {
-    const error = jest.createMockFromModule<ApiException>("@nestjs/common");
+  test('should catch successfully without error message', () => {
+    const error = jest.createMockFromModule<ApiException>('@nestjs/common');
 
     appExceptionFilter.catch(error, mock);
   });

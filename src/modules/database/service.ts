@@ -1,16 +1,14 @@
-import { Injectable } from "@nestjs/common";
-import { MongooseModuleOptions } from "@nestjs/mongoose";
+import { Injectable } from '@nestjs/common';
+import { MongooseModuleOptions } from '@nestjs/mongoose';
 
-import { ConnectionModel } from "./types";
-import { IDataBaseService } from "./adapter";
+import { ConnectionModel } from './types';
+import { IDataBaseService } from './adapter';
 
 @Injectable()
 export class DataBaseService implements IDataBaseService {
-  getDefaultConnection<T extends MongooseModuleOptions = MongooseModuleOptions>(
-    config: ConnectionModel
-  ): T {
+  getDefaultConnection<T extends MongooseModuleOptions = MongooseModuleOptions>(config: ConnectionModel): T {
     return {
-      appName: "monorepo",
+      appName: 'monorepo',
       uri: this.getConnectionString(config),
     } as T;
   }
