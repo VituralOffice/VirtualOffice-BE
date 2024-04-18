@@ -25,9 +25,16 @@ export class VerifyEmailDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsEmail()
-  email: string
+  email: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  otp: string
+  otp: string;
+}
+export class RefreshTokenDto {
+  @ApiProperty({
+    nullable: false
+  })
+  @IsNotEmpty()
+  refreshToken: string
 }

@@ -1,12 +1,12 @@
 import { Test } from '@nestjs/testing';
 
-import { IUserRepository } from '../../user/adapter';
+import { UserService } from '../../user/adapter';
 import { IAuthService } from '../adapter';
 import { authService } from '../service';
 
 describe('authService', () => {
   let authService: IAuthService;
-  let userRepository: IUserRepository;
+  let userService: UserService;
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -19,7 +19,7 @@ describe('authService', () => {
           useClass: authService,
         },
         {
-          provide: IUserRepository,
+          provide: UserService,
           useValue: {
             logged: jest.fn(),
           },
@@ -28,18 +28,18 @@ describe('authService', () => {
     }).compile();
 
     authService = app.get(IAuthService);
-    userRepository = app.get(IUserRepository);
+    userService = app.get(UserService);
   });
 
   describe('login', () => {
     const user = { login: 'mock', pass: 'pass' };
     test('should login successfully', async () => {
-      userRepository.findOne = jest.fn().mockResolvedValue(user);
+      userService.findOne = jest.fn().mockResolvedValue(user);
       await expect(authService.login(user)).resolves.toEqual(user);
     });
 
     test('should throw "not found login" error', async () => {
-      userRepository.findOne = jest.fn();
+      userService.findOne = jest.fn();
       await expect(authService.login(user)).rejects.toThrow('username or password is invalid.');
     });
   });

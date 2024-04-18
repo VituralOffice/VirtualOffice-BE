@@ -1,15 +1,19 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY, JWT_ACCESS_KEY } from 'src/constant';
-import { ITokenService } from '../token/adapter';
-import { ISecretsService } from '../global/secrets/adapter';
+import { TokenService } from '../../token/service';
+import { ISecretsService } from '../../global/secrets/adapter';
 import { Request } from 'express';
+import { UserService } from '../../user/service';
+import { JwtPayload } from '../jwt/jwt.strategy';
+import { ApiException } from 'src/common';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
-    private tokenService: ITokenService,
+    private tokenService: TokenService,
     private secretsService: ISecretsService,
+    private userService: UserService,
     private reflector: Reflector,
   ) {}
 
@@ -27,15 +31,18 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException();
     }
     try {
-      const payload = await this.tokenService.verify(token, this.secretsService.jwt.accessSecret);
-      request['user'] = payload;
+      const payload = this.tokenService.verify(token, this.secretsService.jwt.accessSecret);
+      const user = await this.userService.findById(payload.userId);
+      if (!user) throw new ApiException(`User not found`, 404);
+      request['user'] = user;
     } catch (error) {
+      if ((error.message = `jwt expired`)) throw new ApiException(`token expired`, 401);
       throw new UnauthorizedException();
     }
     return true;
   }
   private extractTokenFromCookie(request: Request): string | undefined {
-    const token = request.cookies[JWT_ACCESS_KEY];
-    return token;
+    let { authorization } = request.headers;
+    return authorization?.split(' ')[1];
   }
 }
