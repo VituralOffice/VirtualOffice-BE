@@ -1,12 +1,12 @@
-import { Module } from "@nestjs/common";
-import { MongooseModule } from "@nestjs/mongoose";
+import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
 
-import { ISecretsService } from "../../global/secrets/adapter";
-import { SecretsModule } from "../../global/secrets/module";
-import { IDataBaseService, IRepository } from "../adapter";
-import { ConnectionName } from "../enum";
-import { Repository } from "../repository";
-import { DataBaseService } from "../service";
+import { ISecretsService } from '../../global/secrets/adapter';
+import { SecretsModule } from '../../global/secrets/module';
+import { IDataBaseService, IRepository } from '../adapter';
+import { ConnectionName } from '../enum';
+import { Repository } from '../repository';
+import { DataBaseService } from '../service';
 
 @Module({
   providers: [

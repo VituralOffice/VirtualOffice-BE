@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus } from "@nestjs/common";
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 export type ErrorModel = {
   error: {
@@ -18,11 +18,7 @@ export class ApiException extends HttpException {
   config?: unknown;
   user?: string;
 
-  constructor(
-    error: string | object,
-    status?: HttpStatus,
-    private readonly ctx?: string
-  ) {
+  constructor(error: string | object, status?: HttpStatus, private readonly ctx?: string) {
     super(error, [status, 500].find(Boolean));
     this.statusCode = super.getStatus();
 

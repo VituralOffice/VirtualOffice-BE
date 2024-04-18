@@ -1,7 +1,7 @@
 import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { GoogleOauthGuard } from './google-oauth.guard';
-import { ITokenService } from 'src/modules/token/adapter';
+import { TokenService } from 'src/modules/token/service';
 import { ISecretsService } from 'src/modules/global/secrets/adapter';
 import { UserEntity } from 'src/modules/user/entity';
 import { JwtPayload } from '../jwt/jwt.strategy';
@@ -13,7 +13,7 @@ import { Public } from 'src/common/decorators/public.decorator';
 @ApiTags('')
 @Controller('auth')
 export class GoogleOauthController {
-  constructor(private tokenService: ITokenService, private readonly secretsService: ISecretsService) {}
+  constructor(private tokenService: TokenService, private readonly secretsService: ISecretsService) {}
   @Get('google')
   @Public()
   @UseGuards(GoogleOauthGuard)
@@ -28,7 +28,7 @@ export class GoogleOauthController {
       userId: user.id,
       email: user.email,
     };
-    await this.tokenService.revoke(user);
+    await this.tokenService.revoke(user.id);
     const accessToken = this.tokenService.sign(payload, this.secretsService.jwt.accessSecret, {
       algorithm: 'HS256',
       expiresIn: this.secretsService.jwt.accessExpires,
@@ -52,7 +52,7 @@ export class GoogleOauthController {
       sameSite: true,
       path: '/',
     });
-    const profileRoute = `${this.secretsService.APP_URL}/profile`
+    const profileRoute = `${this.secretsService.APP_URL}/profile`;
     return res.redirect(profileRoute);
   }
 }

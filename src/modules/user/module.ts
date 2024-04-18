@@ -1,27 +1,13 @@
-import { Module } from "@nestjs/common";
-import { getConnectionToken } from "@nestjs/mongoose";
-import { ConnectionName } from "src/modules/database/enum";
-import { Connection, Model } from "mongoose";
-
-import { IUserRepository } from "./adapter";
-import { UserRepository } from "./repository";
-import { User, UserDocument, UserSchema } from "./schema";
+import { Module } from '@nestjs/common';
+import { UserController } from './controller';
+import { CharacterModule } from '../character/module';
+import { userProviders } from './provider';
+import { DatabaseModule } from '../database/module';
 
 @Module({
-  controllers: [],
-  providers: [
-    {
-      provide: IUserRepository,
-      useFactory: (connection: Connection) =>
-        new UserRepository(
-          connection.model(
-            User.name,
-            UserSchema
-          ) as unknown as Model<UserDocument>
-        ),
-      inject: [getConnectionToken(ConnectionName.AUTH)],
-    },
-  ],
-  exports: [IUserRepository],
+  imports: [DatabaseModule, CharacterModule],
+  controllers: [UserController],
+  providers: [...userProviders],
+  exports: [...userProviders],
 })
 export class UserModule {}

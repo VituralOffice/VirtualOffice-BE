@@ -79,10 +79,10 @@ export const Swagger = {
   },
 };
 export interface AppResponse {
-  result: any
-  code: number
-  message: string
-  metadata: any
+  result: any;
+  code: number;
+  message: string;
+  metadata: any;
 }
 
 export const ApiSchemaRes = (schema: AppResponse): Type<AppResponse> => {
@@ -94,13 +94,13 @@ export const ApiSchemaRes = (schema: AppResponse): Type<AppResponse> => {
     metadata: any;
 
     @ApiProperty({ name: 'code', type: 'number', default: schema.code })
-    code: number
+    code: number;
 
     @ApiProperty({ name: 'message', type: 'string', default: schema.message })
-    message: string
+    message: string;
   }
-  return SchemaResponse
-}
+  return SchemaResponse;
+};
 
 export const ApiFailedRes = (...schemas: AppResponse[]) => {
   return applyDecorators(
@@ -109,11 +109,11 @@ export const ApiFailedRes = (...schemas: AppResponse[]) => {
       content: {
         'application/json': {
           examples: schemas.reduce((list, schema) => {
-            list[schema.message] = { value: schema }
-            return list
+            list[schema.message] = { value: schema };
+            return list;
           }, {}),
         },
       },
     }),
-  )
-}
+  );
+};

@@ -18,8 +18,13 @@ export const SwaggerResponse = {
     400: [
       { result: null, code: 400, message: `user not found`, metadata: {} },
       { result: null, code: 400, message: `otp expired`, metadata: {} },
-      { result: null, code: 400, message: `enter incorrect otp upto 5 times, try again after 30 minites`, metadata: {} },
-    ]
+      {
+        result: null,
+        code: 400,
+        message: `enter incorrect otp upto 5 times, try again after 30 minites`,
+        metadata: {},
+      },
+    ],
   },
 };
 

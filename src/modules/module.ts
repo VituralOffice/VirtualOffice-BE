@@ -12,6 +12,7 @@ import { UploadModule } from './upload/module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { ISecretsService } from './global/secrets/adapter';
+import { CharacterModule } from './character/module';
 @Global()
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ISecretsService } from './global/secrets/adapter';
     AWSModule,
     UploadModule,
     LoggerModule,
+    CharacterModule,
     MailerModule.forRootAsync({
       useFactory: (secretsService: ISecretsService) => ({
         transport: {
