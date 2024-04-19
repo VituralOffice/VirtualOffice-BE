@@ -2,11 +2,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import { UpdateProfileDto } from './dto';
 import { ApiException } from 'src/common';
 import { UserEntity } from './entity';
-import { User, UserModel } from './schema';
+import { UserModel } from './schema';
 import { USER_MODEL } from './constant';
 import { CharacterModel } from '../character/schema';
 import { CHARACTER_MODEL } from '../character/constant';
-import { use } from 'passport';
 
 @Injectable()
 export class UserService {

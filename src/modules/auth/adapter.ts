@@ -1,6 +1,6 @@
-import { CreatedModel } from '../database/types';
 import { UserEntity } from '../user/entity';
-import { LoginDto, CreateUserDto } from './dto';
+import { LoginDto } from './dto';
+import * as path from 'path';
 export type TokenResult = {
   accessToken: string;
   refreshToken: string;
