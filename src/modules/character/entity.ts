@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, MinLength, IsEmail } from 'class-validator';
-import { Exclude } from 'class-transformer';
+import { IsNotEmpty } from 'class-validator';
 import { Character } from './schema';
 
 export class CharacterEntity extends Character {

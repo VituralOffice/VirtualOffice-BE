@@ -42,7 +42,7 @@ export class AuthGuard implements CanActivate {
     return true;
   }
   private extractTokenFromCookie(request: Request): string | undefined {
-    let { authorization } = request.headers;
+    const { authorization } = request.headers;
     return authorization?.split(' ')[1];
   }
 }

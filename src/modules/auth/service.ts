@@ -1,4 +1,4 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ApiException } from 'src/common';
 
 import { UserService } from '../user/service';
@@ -30,16 +30,16 @@ export class AuthService {
       const userEntity = new UserEntity();
       userEntity.email = payload.email;
       userEntity.provider = 'local';
-      userEntity.fullname = payload.email.split(`@`)[0]
+      userEntity.fullname = payload.email.split(`@`)[0];
       user = await this.userService.create(userEntity);
     }
     return user;
   }
   async refreshToken(token: string) {
     const tokenDoc = await this.tokenService.findRefreshToken(token);
-    if (!tokenDoc) throw new ApiException(`invalid refresh token`)
-    const user = await this.userService.findById(tokenDoc.user)
-    return this.signPairToken(user)
+    if (!tokenDoc) throw new ApiException(`invalid refresh token`);
+    const user = await this.userService.findById(tokenDoc.user);
+    return this.signPairToken(user);
   }
   async logout(user: UserEntity) {
     await this.tokenService.revoke(user.id);
@@ -93,7 +93,7 @@ export class AuthService {
     const otpCache = await this.cacheService.get(otpKey);
     if (!otpCache) throw new OtpExpiredException();
     if (otpCache !== payload.otp) {
-      let incorrectTimeStr = (await this.cacheService.get(incorrectKey)) || '0';
+      const incorrectTimeStr = (await this.cacheService.get(incorrectKey)) || '0';
       let incorrectTime = parseInt(incorrectTimeStr, 10);
       if (incorrectTime === INCORRECT_ENTER_OTP_TIME) throw new ExceedIncorrectOtpTryException();
       await this.cacheService.set(incorrectKey, String(++incorrectTime), {
