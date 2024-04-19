@@ -1,8 +1,6 @@
 import { Connection } from 'mongoose';
-import { UserSchema } from './schema';
+import { UserSchema, User } from './schema';
 import { USER_MODEL } from './constant';
-import { ConnectionName } from '../database/enum';
-import { User } from 'src/common/decorators/current-user.decorator';
 import { UserService } from './service';
 import { DATABASE_CONNECTION } from '../database/constant';
 
