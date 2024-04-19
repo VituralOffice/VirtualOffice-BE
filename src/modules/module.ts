@@ -39,7 +39,7 @@ import { CharacterModule } from './character/module';
         },
         preview: true,
         template: {
-          dir: process.cwd() + '/src/modules/email/templates/',
+          dir: process.cwd() + '/dist/modules/email/templates/',
           adapter: new HandlebarsAdapter(),
           options: {
             strict: true,
