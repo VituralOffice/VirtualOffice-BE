@@ -1,9 +1,9 @@
+import * as path from 'path';
 import { Global, Module } from '@nestjs/common';
 import { AuthDatabaseModule } from './database/connection/auth';
 import { TokenModule } from './token/module';
 import { LoggerModule } from './global/logger/module';
 import { GlobalModule } from './global/module';
-
 import { HealthModule } from './health/module';
 import { AuthModule } from './auth/module';
 import { UserModule } from './user/module';
@@ -13,6 +13,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { ISecretsService } from './global/secrets/adapter';
 import { CharacterModule } from './character/module';
+
 @Global()
 @Module({
   imports: [
@@ -39,7 +40,7 @@ import { CharacterModule } from './character/module';
         },
         preview: true,
         template: {
-          dir: process.cwd() + '/dist/modules/email/templates/',
+          dir: path.join(__dirname, '/email/templates/'), //process.cwd() + '/dist/modules/email/templates/',
           adapter: new HandlebarsAdapter(),
           options: {
             strict: true,
