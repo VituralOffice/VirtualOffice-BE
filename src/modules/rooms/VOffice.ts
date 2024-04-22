@@ -16,7 +16,6 @@ export class VOffice extends Room<OfficeState> {
   private name: string;
   private description: string;
   private password: string | null = null;
-
   async onCreate(options: IRoomData) {
     const { name, description, password, autoDispose } = options;
     this.name = name;
@@ -133,7 +132,6 @@ export class VOffice extends Room<OfficeState> {
         client,
         content: message.content,
       });
-
       // broadcast to all currently connected clients except the sender (to render in-game dialog on top of the character)
       this.broadcast(
         Message.ADD_CHAT_MESSAGE,
