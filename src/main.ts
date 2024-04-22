@@ -20,16 +20,20 @@ import * as cors from 'cors';
 import * as http from 'node:http';
 import { RoomType } from './types/Rooms';
 import { VOffice } from './modules/rooms/VOffice';
+import { RedisIoAdapter } from './adapter';
 async function bootstrap() {
   const app = express();
   app.use(cors());
   app.use(express.json());
   app.use('/colyseus', monitor());
   const nest = await NestFactory.create(MainModule, new ExpressAdapter(app));
+  const redisIoAdapter = new RedisIoAdapter(nest);
+  nest.useWebSocketAdapter(redisIoAdapter);
   const httpServer = http.createServer(app);
   const server = new Server({
     server: httpServer,
   });
+  // add multer middleware
   const upload = multer();
   app.use('/v1/upload', upload.single('file'));
   server.define(RoomType.LOBBY, LobbyRoom);
