@@ -22,6 +22,9 @@ export class UserEntity extends User {
   role: string;
 
   @ApiProperty()
+  online: boolean;
+
+  @ApiProperty()
   @Exclude()
   password: string;
 }

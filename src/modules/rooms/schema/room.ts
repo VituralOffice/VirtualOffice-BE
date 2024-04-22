@@ -34,6 +34,10 @@ export class Room {
     type: [RoomMember],
   })
   members: RoomMember[];
+  @Prop({
+    default: false,
+  })
+  private: boolean;
 }
 
 export const RoomSchema = SchemaFactory.createForClass(Room);
