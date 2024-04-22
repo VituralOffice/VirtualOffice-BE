@@ -15,6 +15,7 @@ import { ISecretsService } from './global/secrets/adapter';
 import { CharacterModule } from './character/module';
 import { ChatModule } from './chat/module';
 import { MapModule } from './map/module';
+import { RoomModule } from './rooms/module';
 
 @Global()
 @Module({
@@ -31,6 +32,7 @@ import { MapModule } from './map/module';
     CharacterModule,
     ChatModule,
     MapModule,
+    RoomModule,
     MailerModule.forRootAsync({
       useFactory: (secretsService: ISecretsService) => ({
         transport: {
