@@ -13,6 +13,9 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { ISecretsService } from './global/secrets/adapter';
 import { CharacterModule } from './character/module';
+import { ChatModule } from './chat/module';
+import { MapModule } from './map/module';
+import { RoomModule } from './rooms/module';
 
 @Global()
 @Module({
@@ -27,6 +30,9 @@ import { CharacterModule } from './character/module';
     UploadModule,
     LoggerModule,
     CharacterModule,
+    ChatModule,
+    MapModule,
+    RoomModule,
     MailerModule.forRootAsync({
       useFactory: (secretsService: ISecretsService) => ({
         transport: {

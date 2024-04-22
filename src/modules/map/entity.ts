@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, MinLength, IsEmail } from 'class-validator';
 import { Exclude } from 'class-transformer';
-import { User } from './schema';
+import { Map } from './schema';
 
-export class UserEntity extends User {
+export class MapEntity extends Map {
   @ApiProperty()
   id?: string;
 
@@ -20,9 +20,6 @@ export class UserEntity extends User {
 
   @ApiProperty()
   role: string;
-
-  @ApiProperty()
-  online: boolean;
 
   @ApiProperty()
   @Exclude()

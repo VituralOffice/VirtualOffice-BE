@@ -46,6 +46,10 @@ export class User {
   isVerified: boolean;
   @Prop({ type: mongoose.Types.ObjectId, ref: `Character` })
   character: string;
+  @Prop({
+    default: false,
+  })
+  online: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
