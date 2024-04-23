@@ -54,4 +54,7 @@ export class TokenService {
   async findRefreshToken(token: string): Promise<TokenEntity> {
     return this.tokenModel.findOne({ token, type: TOKEN_TYPE.REFRESH });
   }
+  async findTokenJoinRoom(token: string): Promise<TokenEntity> {
+    return this.tokenModel.findOne({ token, type: TOKEN_TYPE.JOIN_ROOM });
+  }
 }
