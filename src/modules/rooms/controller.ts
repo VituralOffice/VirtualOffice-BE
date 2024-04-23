@@ -1,6 +1,6 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { RoomService } from './service';
-import { CreateRoomDto, QueryRoomDto } from './dto';
+import { CreateRoomDto, JoinRoomDto, QueryRoomDto } from './dto';
 import { User } from 'src/common/decorators/current-user.decorator';
 import { UserEntity } from '../user/entity';
 import { ApiException } from 'src/common';
@@ -38,6 +38,40 @@ export class RoomController {
     const rooms = await this.roomService.findAllJoinedRoom(user, query);
     return {
       result: rooms,
+      message: `Success`,
+    };
+  }
+  @Get(':roomId')
+  async getRoom(@Param('roomId') roomId: string, @User() user: UserEntity) {
+    const room = await this.roomService.findById(roomId);
+    if (!room) throw new ApiException(`room not found`, 404);
+    if (!(await this.roomService.checkUserInRoom(user, room)) && room.private)
+      throw new ApiException(`user not in room`, 400);
+    return {
+      result: room,
+      message: `Success`,
+    };
+  }
+  @Post(':roomId/join_link')
+  async joinLink(@Param('roomId') roomId: string, @User() user: UserEntity) {
+    const room = await this.roomService.findById(roomId);
+    if (!room) throw new ApiException(`room not found`, 404);
+    const url = await this.roomService.genJoinLink(room);
+    return {
+      result: url,
+      message: `Success`,
+    };
+  }
+  @Post(':roomId/join')
+  async joinRoom(@Param('roomId') roomId: string, @Body() body: JoinRoomDto, @User() user: UserEntity) {
+    const room = await this.roomService.findById(roomId);
+    if (!room) throw new ApiException(`room not found`, 404);
+    if (!(await this.roomService.checkValidJoinRoomToken(roomId, body.token)))
+      throw new ApiException(`token expired`, 400);
+    if (await this.roomService.checkUserInRoom(user, room)) throw new ApiException(`user already in room`, 400);
+    await this.roomService.joinRoom(room, user);
+    return {
+      result: null,
       message: `Success`,
     };
   }
