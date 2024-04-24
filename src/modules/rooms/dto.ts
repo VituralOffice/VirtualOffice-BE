@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
 import { UserEntity } from '../user/entity';
 import { RoomEntity } from './entity/room';
 import { RoomDocument } from './schema';
@@ -13,6 +13,10 @@ export class CreateRoomDto {
   @IsNotEmpty()
   @IsString()
   name: string;
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsBoolean()
+  private: boolean;
 }
 export class QueryRoomDto {
   @ApiProperty()
