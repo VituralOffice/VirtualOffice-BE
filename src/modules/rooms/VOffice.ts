@@ -1,4 +1,3 @@
-import bcrypt from 'bcryptjs';
 import { Room, Client, ServerError } from 'colyseus';
 import { Dispatcher } from '@colyseus/command';
 import { Player, OfficeState, Computer, Whiteboard } from './schema/OfficeState';
@@ -10,38 +9,35 @@ import PlayerUpdateNameCommand from './commands/PlayerUpdateNameCommand';
 import { ComputerAddUserCommand, ComputerRemoveUserCommand } from './commands/ComputerUpdateArrayCommand';
 import { WhiteboardAddUserCommand, WhiteboardRemoveUserCommand } from './commands/WhiteboardUpdateArrayCommand';
 import ChatMessageUpdateCommand from './commands/ChatMessageUpdateCommand';
-
+import { RoomService } from './service';
+import { INestApplication, Injectable } from '@nestjs/common';
+import { verifyJwt } from 'src/common/helpers/jwt';
+import { ISecretsService } from '../global/secrets/adapter';
+import { UserService } from '../user/service';
+import { UserEntity } from '../user/entity';
+@Injectable()
 export class VOffice extends Room<OfficeState> {
   private dispatcher = new Dispatcher(this);
   private name: string;
-  private description: string;
-  private password: string | null = null;
+  constructor(
+    private readonly roomService: RoomService,
+    private readonly secretService: ISecretsService,
+    private readonly userService: UserService,
+  ) {
+    super();
+  }
   async onCreate(options: IRoomData) {
-    const { name, description, password, autoDispose } = options;
-    this.name = name;
-    this.description = description;
-    this.autoDispose = autoDispose;
-
-    let hasPassword = false;
-    if (password) {
-      const salt = await bcrypt.genSalt(10);
-      this.password = await bcrypt.hash(password, salt);
-      hasPassword = true;
-    }
-    this.setMetadata({ name, description, hasPassword });
-
+    this.name = options.name;
+    this.autoDispose = options.autoDispose;
+    this.setMetadata({ ...options });
+    this.roomId = options.id;
     this.setState(new OfficeState());
-
-    // HARD-CODED: Add 5 computers in a room
     for (let i = 0; i < 5; i++) {
       this.state.computers.set(String(i), new Computer());
     }
-
-    // HARD-CODED: Add 3 whiteboards in a room
     for (let i = 0; i < 3; i++) {
       this.state.whiteboards.set(String(i), new Whiteboard());
     }
-
     // when a player connect to a computer, add to the computer connectedUser array
     this.onMessage(Message.CONNECT_TO_COMPUTER, (client, message: { computerId: string }) => {
       this.dispatcher.dispatch(new ComputerAddUserCommand(), {
@@ -141,22 +137,19 @@ export class VOffice extends Room<OfficeState> {
     });
   }
 
-  async onAuth(client: Client, options: { password: string | null }) {
-    if (this.password) {
-      const validPassword = await bcrypt.compare(options.password, this.password);
-      if (!validPassword) {
-        throw new ServerError(403, 'Password is incorrect!');
-      }
-    }
-    return true;
+  async onAuth(client: Client, options: { token: string | null }) {
+    if (!options.token) throw new ServerError(403, 'Forbidden, must be authenticated');
+    const payload = verifyJwt(options.token, this.secretService.jwt.accessSecret);
+    if (!payload) throw new ServerError(401, 'Unauthorized');
+    const user = await this.userService.findById(payload.userId);
+    if (!user) throw new ServerError(401, 'Unauthorized');
+    return user;
   }
-
-  onJoin(client: Client, options: any) {
-    this.state.players.set(client.sessionId, new Player());
+  async onJoin(client: Client, options: any, auth: UserEntity) {
+    this.state.players.set(client.sessionId, newPlayer(auth));
     client.send(Message.SEND_ROOM_DATA, {
       id: this.roomId,
       name: this.name,
-      description: this.description,
     });
   }
 
@@ -185,3 +178,42 @@ export class VOffice extends Room<OfficeState> {
     this.dispatcher.stop();
   }
 }
+
+/**
+ *
+ * @description inject dependencies to any class not initialized by nestjs
+ */
+export function injectDeps<T extends { new (...args: any[]): Room }>(app: INestApplication, target: T): T {
+  const selfDeps = Reflect.getMetadata('self:paramtypes', target) || [];
+  const dependencies = Reflect.getMetadata('design:paramtypes', target) || [];
+
+  selfDeps.forEach((dep: any) => {
+    dependencies[dep.index] = dep.param;
+  });
+
+  const injectables =
+    dependencies.map((dependency: any) => {
+      return app.get(dependency);
+    }) || [];
+
+  return class extends target {
+    constructor(...args: any[]) {
+      super(...injectables);
+    }
+  };
+}
+export const newPlayer = (user: UserEntity): Player => {
+  const player = new Player();
+  player.id = user.id;
+  player.email = user.email;
+  player.password = '';
+  player.avatar = user.avatar;
+  player.role = user.role;
+  player.online = true;
+  player.provider = user.provider;
+  player.providerId = user.providerId;
+  player.isVerified = user.isVerified;
+  player.character = user.character;
+  player.fullname = user.fullname;
+  return player;
+};

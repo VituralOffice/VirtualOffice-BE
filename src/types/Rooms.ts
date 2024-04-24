@@ -5,8 +5,9 @@ export enum RoomType {
 }
 
 export interface IRoomData {
+  id: string;
   name: string;
-  description: string;
-  password: string | null;
+  private: boolean;
   autoDispose: boolean;
+  map: string;
 }

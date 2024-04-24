@@ -23,7 +23,7 @@ export default class ChatMessageUpdateCommand extends Command<IOfficeState, Payl
     if (chatMessages.length >= 100) chatMessages.shift();
 
     const newMessage = new ChatMessage();
-    newMessage.author = player.name;
+    newMessage.author = player.fullname;
     newMessage.content = content;
     chatMessages.push(newMessage);
   }
