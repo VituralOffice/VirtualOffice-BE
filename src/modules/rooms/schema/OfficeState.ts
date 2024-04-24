@@ -2,7 +2,17 @@ import { Schema, ArraySchema, SetSchema, MapSchema, type } from '@colyseus/schem
 import { IPlayer, IOfficeState, IComputer, IWhiteboard, IChatMessage } from '../../../types/IOfficeState';
 
 export class Player extends Schema implements IPlayer {
-  @type('string') name = '';
+  @type('string') id = '';
+  @type('string') email = '';
+  @type('string') password = '';
+  @type('string') avatar = '';
+  @type('string') role = '';
+  @type('boolean') online = true;
+  @type('string') provider = '';
+  @type('string') providerId = '';
+  @type('boolean') isVerified = true;
+  @type('string') character = '';
+  @type('string') fullname = '';
   @type('number') x = 705;
   @type('number') y = 500;
   @type('string') anim = 'adam_idle_down';
