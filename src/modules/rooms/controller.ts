@@ -8,6 +8,7 @@ import { RoomEntity } from './entity/room';
 import { RoomMember } from './schema/member';
 import { ROLE } from 'src/common/enum/role';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { isNullOrUndefined } from 'util';
 @ApiTags('rooms')
 @Controller({
   path: 'rooms',
@@ -24,6 +25,7 @@ export class RoomController {
     member.user = user.id;
     member.role = ROLE.ADMIN;
     roomDoc.name = body.name;
+    roomDoc.private = body.private;
     roomDoc.map = body.map;
     roomDoc.creator = user.id;
     roomDoc.members = [member];
