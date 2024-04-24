@@ -19,11 +19,12 @@ import * as express from 'express';
 import * as cors from 'cors';
 import * as http from 'node:http';
 import { RoomType } from './types/Rooms';
-import { VOffice } from './modules/rooms/VOffice';
+import { VOffice, injectDeps } from './modules/rooms/VOffice';
 import { RedisIoAdapter } from './adapter';
 async function bootstrap() {
   const app = express();
   app.use(cors());
+  app.options('*', cors());
   app.use(express.json());
   app.use('/colyseus', monitor());
   const nest = await NestFactory.create(MainModule, new ExpressAdapter(app));
@@ -39,11 +40,12 @@ async function bootstrap() {
   server.define(RoomType.LOBBY, LobbyRoom);
   server.define(RoomType.PUBLIC, VOffice, {
     name: 'Public Lobby',
-    description: 'For making friends and familiarizing yourself with the controls',
-    password: null,
+    id: ``,
+    map: ``,
+    private: false,
     autoDispose: false,
   });
-  server.define(RoomType.CUSTOM, VOffice).enableRealtimeListing();
+  server.define(RoomType.CUSTOM, injectDeps(nest, VOffice)).enableRealtimeListing();
   nest.useGlobalPipes(
     new ValidationPipe({
       errorHttpStatusCode: HttpStatus.PRECONDITION_FAILED,
@@ -91,4 +93,5 @@ async function bootstrap() {
   loggerService.log(`🔵 kibana listening at ${bold(KIBANA_URL)}`);
   loggerService.log(`🔵 jeager listening at ${bold(JEAGER_URL)}`);
 }
+
 bootstrap();
