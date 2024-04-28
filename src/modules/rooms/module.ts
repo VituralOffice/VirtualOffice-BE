@@ -5,9 +5,10 @@ import { DatabaseModule } from '../database/module';
 import { TokenModule } from '../token/module';
 import { RedisModule } from '../cache/module';
 import { SecretsModule } from '../global/secrets/module';
+import { UserModule } from '../user/module';
 
 @Module({
-  imports: [DatabaseModule, TokenModule, RedisModule, SecretsModule],
+  imports: [DatabaseModule, UserModule, TokenModule, RedisModule, SecretsModule],
   controllers: [RoomController],
   providers: [...roomProviders],
   exports: [...roomProviders],
