@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { RoomService } from './service';
-import { CreateRoomDto, JoinRoomDto, QueryRoomDto } from './dto';
+import { CreateRoomDto, InviteRoomDto, JoinRoomDto, QueryRoomDto } from './dto';
 import { User } from 'src/common/decorators/current-user.decorator';
 import { UserEntity } from '../user/entity';
 import { ApiException } from 'src/common';
@@ -9,12 +9,13 @@ import { RoomMember } from './schema/member';
 import { ROLE } from 'src/common/enum/role';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { isNullOrUndefined } from 'util';
+import { UserService } from '../user/service';
 @ApiTags('rooms')
 @Controller({
   path: 'rooms',
 })
 export class RoomController {
-  constructor(private roomService: RoomService) {}
+  constructor(private roomService: RoomService, private userService: UserService) {}
   @Post()
   @ApiBody({ type: CreateRoomDto })
   async create(@Body() body: CreateRoomDto, @User() user: UserEntity) {
@@ -72,6 +73,27 @@ export class RoomController {
       throw new ApiException(`token expired`, 400);
     if (await this.roomService.checkUserInRoom(user, room)) throw new ApiException(`user already in room`, 400);
     await this.roomService.joinRoom(room, user);
+    return {
+      result: null,
+      message: `Success`,
+    };
+  }
+  @Post(':roomId/invite')
+  async invite(@Param('roomId') roomId: string, @Body() body: InviteRoomDto, @User() inviter: UserEntity) {
+    const room = await this.roomService.findById(roomId);
+    if (!room) throw new ApiException(`room not found`, 404);
+    const user = await this.userService.findByEmail(body.email);
+    if (user) {
+      if (await this.roomService.checkUserInRoom(user, room)) throw new ApiException(`user already in room`, 400);
+    }
+    const url = await this.roomService.genJoinLink(room);
+    console.log({ inviter });
+    await this.roomService.sendJoinLink({
+      email: body.email,
+      url,
+      inviterFullName: inviter.fullname || inviter.email,
+      roomName: room.name,
+    });
     return {
       result: null,
       message: `Success`,
