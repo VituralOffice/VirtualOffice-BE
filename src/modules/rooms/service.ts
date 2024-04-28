@@ -3,7 +3,7 @@ import { JOIN_ROOM_LINK_TTL, ROOM_MODEL } from './constant';
 import { Room, RoomDocument, RoomModel } from './schema/room';
 import { UserEntity } from '../user/entity';
 import { RoomEntity } from './entity/room';
-import { JoinRoomPayload, QueryRoomDto } from './dto';
+import { JoinRoomPayload, QueryRoomDto, SendJoinLinkPayload } from './dto';
 import { FilterQuery } from 'mongoose';
 import { TokenService } from '../token/service';
 import { ApiException } from 'src/common';
@@ -12,12 +12,14 @@ import { ROLE } from 'src/common/enum/role';
 import { ICacheService } from '../cache/adapter';
 import { randomHash } from 'src/common/crypto/bcrypt';
 import { ISecretsService } from '../global/secrets/adapter';
+import { MailerService } from '@nestjs-modules/mailer';
 @Injectable()
 export class RoomService {
   constructor(
     @Inject(ROOM_MODEL) private roomModel: RoomModel,
     private cacheService: ICacheService,
     private secretsService: ISecretsService,
+    private mailerService: MailerService,
   ) {}
   async create(data: RoomEntity) {
     return this.roomModel.create(data);
@@ -57,5 +59,19 @@ export class RoomService {
   async checkValidJoinRoomToken(roomId: string, token: string) {
     const key = `room_${roomId}_${token}`;
     return !!(await this.cacheService.get(key));
+  }
+  async sendJoinLink(payload: SendJoinLinkPayload) {
+    // todo:
+    return this.mailerService.sendMail({
+      to: payload.email,
+      from: `VOffice <${this.secretsService.smtp.from}>`,
+      subject: 'Join room',
+      template: 'joinRoom',
+      context: {
+        url: payload.url,
+        inviter_fullname: payload.inviterFullName,
+        room_name: payload.roomName,
+      },
+    });
   }
 }

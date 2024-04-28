@@ -33,3 +33,15 @@ export type JoinRoomPayload = {
   token: string;
   user: UserEntity;
 };
+export class InviteRoomDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  email: string;
+}
+export type SendJoinLinkPayload = {
+  email: string;
+  inviterFullName: string;
+  roomName: string;
+  url: string;
+};
