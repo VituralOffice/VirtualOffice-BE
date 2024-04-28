@@ -37,7 +37,6 @@ export class GoogleOauthController {
       algorithm: 'HS256',
       expiresIn: this.secretsService.jwt.refreshExpires,
     });
-    // save to db
     await this.tokenService.save({ token: accessToken, type: TOKEN_TYPE.ACCESS, user });
     await this.tokenService.save({ token: refreshToken, type: TOKEN_TYPE.REFRESH, user });
     res.cookie(JWT_ACCESS_KEY, accessToken, {
@@ -46,13 +45,13 @@ export class GoogleOauthController {
       sameSite: true,
       path: '/',
     });
-    res.cookie(JWT_REFRESH_KEY, accessToken, {
+    res.cookie(JWT_REFRESH_KEY, refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: true,
       path: '/',
     });
-    const profileRoute = `${this.secretsService.APP_URL}/profile`;
-    return res.redirect(profileRoute);
+    const appRoute = `${this.secretsService.APP_URL}/app`;
+    return res.redirect(appRoute);
   }
 }

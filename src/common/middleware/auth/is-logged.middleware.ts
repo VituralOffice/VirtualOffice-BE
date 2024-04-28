@@ -26,7 +26,7 @@ export class IsLoggedMiddleware implements NestMiddleware {
 
     const token = tokenHeader.split(' ')[1];
 
-    const userDecoded = this.tokenService.verify(token, this.secretsService.jwt.accessSecret);
+    const userDecoded = await this.tokenService.verify(token, this.secretsService.jwt.accessSecret);
 
     request.headers.user = userDecoded.userId;
 

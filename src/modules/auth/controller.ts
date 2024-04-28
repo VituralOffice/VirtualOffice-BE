@@ -54,22 +54,24 @@ export class AuthController {
   @Post('logout')
   async logout(@User() user: UserEntity, @Res() res: Response) {
     await this.authService.logout(user);
+    res.clearCookie(`accessToken`);
+    res.clearCookie(`refreshToken`);
     res.status(200).send({
       result: null,
       message: `Success`,
     });
   }
-  @Post("refresh")
+  @Post('refresh')
   @Public()
   @ApiBody({
-    type: RefreshTokenDto
+    type: RefreshTokenDto,
   })
   async refresh(@Body() body: RefreshTokenDto, @Res() res: Response) {
-    const { accessToken, refreshToken } = await this.authService.refreshToken(body.refreshToken)
+    const { accessToken, refreshToken } = await this.authService.refreshToken(body.refreshToken);
     return res.status(200).json({
       result: {
         accessToken,
-        refreshToken
+        refreshToken,
       },
       message: `Success`,
       code: 200,
