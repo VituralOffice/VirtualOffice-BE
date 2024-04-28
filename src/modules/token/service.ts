@@ -24,9 +24,14 @@ export class TokenService {
     return token;
   }
 
-  verify(token: string, secret: string): JwtPayload {
+  async verify(token: string, secret: string) {
     try {
       const payload = jwt.verify(token, secret) as JwtPayload;
+      const tokenDoc = await this.tokenModel.findOne({
+        token: token,
+        type: TOKEN_TYPE.ACCESS,
+      });
+      if (!tokenDoc || tokenDoc.isBlacklist) throw new ApiException(`invalid token`);
       return payload;
     } catch (error) {
       throw new ApiException(error.message, HttpStatus.UNAUTHORIZED, `${TokenService.name}/${this.verify.name}`);
