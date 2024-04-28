@@ -31,7 +31,7 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException();
     }
     try {
-      const payload = this.tokenService.verify(token, this.secretsService.jwt.accessSecret);
+      const payload = await this.tokenService.verify(token, this.secretsService.jwt.accessSecret);
       const user = await this.userService.findById(payload.userId);
       if (!user) throw new ApiException(`User not found`, 404);
       request['user'] = user;
@@ -43,6 +43,8 @@ export class AuthGuard implements CanActivate {
   }
   private extractTokenFromCookie(request: Request): string | undefined {
     const { authorization } = request.headers;
-    return authorization?.split(' ')[1];
+    let token = authorization?.split(' ')[1];
+    if (!token) token = request.cookies[JWT_ACCESS_KEY];
+    return token;
   }
 }

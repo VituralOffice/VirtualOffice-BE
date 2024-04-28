@@ -27,7 +27,7 @@
   "dependencies": {
     "@colyseus/command": "^0.1.7",
     "@colyseus/monitor": "^0.14.0",
-    "@nestjs-modules/mailer": "^1.11.2",
+    "@nestjs-modules/mailer": "^1.6.1",
     "@nestjs/cli": "^10.3.2",
     "@nestjs/common": "^10.3.7",
     "@nestjs/config": "^3.2.2",
@@ -50,6 +50,7 @@
     "colorette": "^2.0.20",
     "colyseus": "^0.14.0",
     "convert-pino-request-to-curl": "^0.0.29",
+    "cookie-parser": "^1.4.6",
     "express": "^4.19.2",
     "handlebars": "^4.7.8",
     "jaeger-client": "^3.19.0",
@@ -74,6 +75,7 @@
     "slugify": "^1.6.6",
     "socket.io": "^4.7.5",
     "string-width": "^7.1.0",
+    "stripe": "^15.4.0",
     "swagger-ui-express": "^5.0.0",
     "uuid": "^9.0.1"
   },
