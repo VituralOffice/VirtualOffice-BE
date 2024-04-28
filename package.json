@@ -68,6 +68,7 @@
     "pino-elasticsearch": "^8.0.0",
     "pino-http": "^9.0.0",
     "pino-pretty": "^11.0.0",
+    "preview-email": "^3.0.19",
     "redis": "^4.6.13",
     "reflect-metadata": "^0.2.2",
     "rimraf": "^5.0.5",
