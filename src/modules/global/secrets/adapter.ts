@@ -2,22 +2,23 @@ export abstract class ISecretsService {
   ENV: string;
   REDIS_URL: string;
   ELK_URL: string;
-
   MONGO_EXPRESS_URL: string;
   JEAGER_URL: string;
   REDIS_COMMANDER_URL: string;
   KIBANA_URL: string;
-
   LOG_LEVEL: string;
   API_URL: string;
   APP_URL: string;
+  STRIPE_PRIVATE_KEY: string;
+  STRIPE_SUCCESS_CALLBACK: string;
+  STRIPE_CANCEL_CALLBACK: string;
   database: {
     host: string;
     port: number;
     user: string;
     pass: string;
   };
-
+  ORIGINS: string;
   mainAPI: {
     port: number;
     url: string;
