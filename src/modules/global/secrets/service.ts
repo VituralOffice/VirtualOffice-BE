@@ -10,7 +10,6 @@ export class SecretsService extends ConfigService implements ISecretsService {
   constructor() {
     super();
   }
-
   ELK_URL = this.get('ELK_URL');
   API_URL = this.get('API_URL');
   APP_URL = this.get('APP_URL');
@@ -18,25 +17,23 @@ export class SecretsService extends ConfigService implements ISecretsService {
   REDIS_COMMANDER_URL = this.get('REDIS_COMMANDER_URL');
   JEAGER_URL = this.get('JEAGER_URL');
   KIBANA_URL = this.get('KIBANA_URL');
-
+  STRIPE_PRIVATE_KEY = this.get('STRIPE_PRIVATE_KEY');
+  STRIPE_SUCCESS_CALLBACK = this.get('STRIPE_SUCCESS_CALLBACK');
+  STRIPE_CANCEL_CALLBACK = this.get('STRIPE_SUCCESS_CALLBACK');
   REDIS_URL = this.get('REDIS_URL');
-
   ENV = this.get('ENV');
-
   LOG_LEVEL = this.get<LevelWithSilent>('LOG_LEVEL');
-
   database = {
     host: this.get('MONGO_HOST'),
     port: this.get<number>('MONGO_PORT'),
     user: this.get('MONGO_INITDB_ROOT_USERNAME'),
     pass: this.get('MONGO_INITDB_ROOT_PASSWORD'),
   };
-
+  ORIGINS = this.get<string>('ORIGINS');
   mainAPI = {
     port: this.get<number>(CatsAPIEnvironment.PORT),
     url: this.get(CatsAPIEnvironment.URL),
   };
-
   authAPI = {
     port: this.get<number>(AuthAPIEnvironment.PORT),
     jwtToken: this.get(AuthAPIEnvironment.SECRET_JWT),
