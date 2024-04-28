@@ -18,18 +18,29 @@ import * as multer from 'multer';
 import * as express from 'express';
 import * as cors from 'cors';
 import * as http from 'node:http';
+import * as cookieParser from 'cookie-parser';
 import { RoomType } from './types/Rooms';
 import { VOffice, injectDeps } from './modules/rooms/VOffice';
 import { RedisIoAdapter } from './adapter';
 async function bootstrap() {
   const app = express();
-  app.use(cors());
-  app.options('*', cors());
-  app.use(express.json());
-  app.use('/colyseus', monitor());
+
   const nest = await NestFactory.create(MainModule, new ExpressAdapter(app));
   const redisIoAdapter = new RedisIoAdapter(nest);
   nest.useWebSocketAdapter(redisIoAdapter);
+  const loggerService = nest.get(ILoggerService);
+  const secretsService = nest.get(ISecretsService);
+  const whitelist = secretsService.ORIGINS.split(',') || ['*'];
+  const corsOptions = {
+    origin: whitelist,
+    credentials: true,
+  };
+  const corsMiddleware = cors(corsOptions);
+  app.use(cookieParser());
+  app.use(express.json());
+  app.use(corsMiddleware);
+  app.options('*', corsMiddleware);
+  app.use('/colyseus', monitor());
   const httpServer = http.createServer(app);
   const server = new Server({
     server: httpServer,
@@ -51,11 +62,9 @@ async function bootstrap() {
       errorHttpStatusCode: HttpStatus.PRECONDITION_FAILED,
     }),
   );
-  const loggerService = nest.get(ILoggerService);
-  const secretsService = nest.get(ISecretsService);
 
   loggerService.setApplication(APP_NAME);
-  nest.enableCors();
+  //nest.enableCors({});
   nest.useGlobalFilters(new AppExceptionFilter(loggerService, secretsService));
   nest.useGlobalInterceptors(
     new ExceptionInterceptor(),
