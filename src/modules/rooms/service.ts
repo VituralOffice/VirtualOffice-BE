@@ -30,6 +30,7 @@ export class RoomService {
   async findAllJoinedRoom(user: UserEntity, query: QueryRoomDto) {
     const param: FilterQuery<Room> = { members: { $elemMatch: { user: user.id } } };
     if (query.name) param.name = { $regex: `${query.name}`, $options: 'i' };
+    if (query.owned) param.creator = user.id;
     return this.roomModel.find(param).populate('map');
   }
   async findByName(name: string) {
