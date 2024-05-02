@@ -40,13 +40,13 @@ export class GoogleOauthController {
     await this.tokenService.save({ token: accessToken, type: TOKEN_TYPE.ACCESS, user });
     await this.tokenService.save({ token: refreshToken, type: TOKEN_TYPE.REFRESH, user });
     res.cookie(JWT_ACCESS_KEY, accessToken, {
-      httpOnly: true,
+      httpOnly: false,
       secure: true,
       sameSite: true,
       path: '/',
     });
     res.cookie(JWT_REFRESH_KEY, refreshToken, {
-      httpOnly: true,
+      httpOnly: false,
       secure: true,
       sameSite: true,
       path: '/',

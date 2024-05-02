@@ -9,6 +9,7 @@ import { JwtPayload } from '../auth/jwt/jwt.strategy';
 import { TOKEN_TYPE } from './enum';
 import { TokenModel } from './schema';
 import { TOKEN_MODEL } from './constant';
+import mongoose from 'mongoose';
 
 @Injectable()
 export class TokenService {
@@ -47,7 +48,7 @@ export class TokenService {
   async revoke(user: string): Promise<void> {
     await this.tokenModel.updateMany(
       {
-        user,
+        user: new mongoose.Types.ObjectId(user),
       },
       { isBlacklist: true },
     );
