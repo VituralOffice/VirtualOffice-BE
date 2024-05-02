@@ -1,8 +1,8 @@
-import { Body, Controller, HttpCode, Post, Res } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Req, Res } from '@nestjs/common';
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SwaggerResponse } from './swagger';
 import { LoginDto, RefreshTokenDto, VerifyEmailDto } from './dto';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { JWT_ACCESS_KEY, JWT_REFRESH_KEY } from 'src/constant';
 import { Public } from 'src/common/decorators/public.decorator';
 import { UserEntity } from '../user/entity';
@@ -38,18 +38,20 @@ export class AuthController {
   @ApiBody({ type: VerifyEmailDto })
   @ApiResponse(SwaggerResponse.verify[200])
   @ApiFailedRes(...SwaggerResponse.verify[400])
-  async confirmEmail(@Body() body: VerifyEmailDto, @Res() res: Response) {
+  async confirmEmail(@Body() body: VerifyEmailDto, @Req() req: Request, @Res() res: Response) {
     const user = await this.authService.verifyOtp(body);
     const { accessToken, refreshToken } = await this.authService.signPairToken(user);
     res.cookie(JWT_ACCESS_KEY, accessToken, {
       httpOnly: false,
       secure: true,
       path: '/',
+      domain: req.originalUrl,
     });
     res.cookie(JWT_REFRESH_KEY, refreshToken, {
       httpOnly: false,
       secure: true,
       path: '/',
+      domain: req.originalUrl,
     });
     return res.status(200).json({
       result: {
@@ -76,17 +78,19 @@ export class AuthController {
   @ApiBody({
     type: RefreshTokenDto,
   })
-  async refresh(@Body() body: RefreshTokenDto, @Res() res: Response) {
+  async refresh(@Body() body: RefreshTokenDto, @Req() req: Request, @Res() res: Response) {
     const { accessToken, refreshToken } = await this.authService.refreshToken(body.refreshToken);
     res.cookie(JWT_ACCESS_KEY, accessToken, {
       httpOnly: false,
       secure: true,
       path: '/',
+      domain: req.originalUrl,
     });
     res.cookie(JWT_REFRESH_KEY, refreshToken, {
       httpOnly: false,
       secure: true,
       path: '/',
+      domain: req.originalUrl,
     });
     return res.status(200).json({
       result: {
