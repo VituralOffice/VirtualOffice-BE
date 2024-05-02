@@ -1,7 +1,10 @@
 import { Schema, ArraySchema, SetSchema, MapSchema, type } from '@colyseus/schema';
 import { IPlayer, IOfficeState, IComputer, IWhiteboard, IChatMessage } from '../../../types/IOfficeState';
+import { CharacterEntity } from 'src/modules/character/entity';
 
 export class Player extends Schema implements IPlayer {
+  providerId: string;
+  character: CharacterEntity;
   @type('string') id = '';
   @type('string') email = '';
   @type('string') password = '';
@@ -9,9 +12,7 @@ export class Player extends Schema implements IPlayer {
   @type('string') role = '';
   @type('boolean') online = true;
   @type('string') provider = '';
-  @type('string') providerId = '';
   @type('boolean') isVerified = true;
-  @type('string') character = '';
   @type('string') fullname = '';
   @type('number') x = 705;
   @type('number') y = 500;

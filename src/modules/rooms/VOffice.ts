@@ -143,7 +143,8 @@ export class VOffice extends Room<OfficeState> {
     if (!payload) throw new ServerError(401, 'Unauthorized');
     const user = await this.userService.findById(payload.userId);
     if (!user) throw new ServerError(401, 'Unauthorized');
-    return user;
+    const userProfile = await this.userService.getProfile(user);
+    return userProfile;
   }
   async onJoin(client: Client, options: any, auth: UserEntity) {
     this.state.players.set(client.sessionId, newPlayer(auth));
@@ -207,13 +208,13 @@ export const newPlayer = (user: UserEntity): Player => {
   player.id = user.id;
   player.email = user.email;
   player.password = '';
-  player.avatar = user.avatar;
+  player.avatar = user.avatar || '';
   player.role = user.role;
   player.online = true;
   player.provider = user.provider;
   player.providerId = user.providerId;
   player.isVerified = user.isVerified;
-  player.character = user.character;
+  player.character = (user as any).character;
   player.fullname = user.fullname;
   return player;
 };
