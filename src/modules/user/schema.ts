@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Model } from 'mongoose';
 import { OAUTH_PROVIDER } from 'src/common/enum/oauth-provider';
 import { ROLE } from 'src/common/enum/role';
+import { Character } from '../character/schema';
 
 export type UserDocument = User & Document;
 
@@ -45,7 +46,7 @@ export class User {
   })
   isVerified: boolean;
   @Prop({ type: mongoose.Types.ObjectId, ref: `Character` })
-  character: string;
+  character: string | Character;
   @Prop({
     default: false,
   })
