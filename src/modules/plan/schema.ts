@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Model } from 'mongoose';
 
-export type UserDocument = Plan & Document;
+export type PlanDocument = Plan & Document;
 
 @Schema({
   timestamps: {
@@ -18,23 +18,31 @@ export type UserDocument = Plan & Document;
 })
 export class Plan {
   @Prop({
-    required: true
+    required: true,
   })
   name: string;
   @Prop({
-    required: true
+    required: true,
   })
   maxRoom: number;
   @Prop({
-    required: true
+    required: true,
   })
   maxRoomCapacity: number;
   @Prop({
-    required: true
+    required: true,
   })
-  price: number
+  monthlyPrice: number; // monthly price
+  @Prop({
+    required: true,
+  })
+  annuallyPrice: number;
   @Prop()
-  features: string[]
+  monthlyPriceId: string; // stripe price id
+  @Prop()
+  annuallyPriceId: string; // stripe price id
+  @Prop()
+  features: string[];
 }
 export const PlanSchema = SchemaFactory.createForClass(Plan);
 export type PlanModel = Model<Plan>;

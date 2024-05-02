@@ -9,6 +9,7 @@ import { TOKEN_TYPE } from 'src/modules/token/enum';
 import { JWT_ACCESS_KEY, JWT_REFRESH_KEY } from 'src/constant';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
+import { cookieDomain } from 'src/common/helpers/common';
 
 @ApiTags('')
 @Controller('auth')
@@ -43,11 +44,15 @@ export class GoogleOauthController {
       httpOnly: false,
       secure: true,
       path: '/',
+      sameSite: 'none',
+      domain: cookieDomain(req.hostname),
     });
     res.cookie(JWT_REFRESH_KEY, refreshToken, {
       httpOnly: false,
       secure: true,
       path: '/',
+      sameSite: 'none',
+      domain: cookieDomain(req.hostname),
     });
     const appRoute = `${this.secretsService.APP_URL}/app`;
     return res.redirect(appRoute);
