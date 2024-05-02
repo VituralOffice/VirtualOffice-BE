@@ -12,7 +12,6 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
   @Get('profile')
   async getProfile(@User() user: UserEntity) {
-    console.log({ user });
     const profile = await this.userService.getProfile(user);
     return {
       message: `Success`,
