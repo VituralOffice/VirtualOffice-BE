@@ -42,13 +42,11 @@ export class GoogleOauthController {
     res.cookie(JWT_ACCESS_KEY, accessToken, {
       httpOnly: false,
       secure: true,
-      sameSite: true,
       path: '/',
     });
     res.cookie(JWT_REFRESH_KEY, refreshToken, {
       httpOnly: false,
       secure: true,
-      sameSite: true,
       path: '/',
     });
     const appRoute = `${this.secretsService.APP_URL}/app`;

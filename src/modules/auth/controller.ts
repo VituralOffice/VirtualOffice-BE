@@ -3,7 +3,7 @@ import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SwaggerResponse } from './swagger';
 import { LoginDto, RefreshTokenDto, VerifyEmailDto } from './dto';
 import { Response } from 'express';
-import { JWT_REFRESH_KEY } from 'src/constant';
+import { JWT_ACCESS_KEY, JWT_REFRESH_KEY } from 'src/constant';
 import { Public } from 'src/common/decorators/public.decorator';
 import { UserEntity } from '../user/entity';
 import { ApiFailedRes } from 'src/common/documentation/swagger';
@@ -41,6 +41,16 @@ export class AuthController {
   async confirmEmail(@Body() body: VerifyEmailDto, @Res() res: Response) {
     const user = await this.authService.verifyOtp(body);
     const { accessToken, refreshToken } = await this.authService.signPairToken(user);
+    res.cookie(JWT_ACCESS_KEY, accessToken, {
+      httpOnly: false,
+      secure: true,
+      path: '/',
+    });
+    res.cookie(JWT_REFRESH_KEY, refreshToken, {
+      httpOnly: false,
+      secure: true,
+      path: '/',
+    });
     return res.status(200).json({
       result: {
         accessToken,
@@ -68,6 +78,16 @@ export class AuthController {
   })
   async refresh(@Body() body: RefreshTokenDto, @Res() res: Response) {
     const { accessToken, refreshToken } = await this.authService.refreshToken(body.refreshToken);
+    res.cookie(JWT_ACCESS_KEY, accessToken, {
+      httpOnly: false,
+      secure: true,
+      path: '/',
+    });
+    res.cookie(JWT_REFRESH_KEY, refreshToken, {
+      httpOnly: false,
+      secure: true,
+      path: '/',
+    });
     return res.status(200).json({
       result: {
         accessToken,
