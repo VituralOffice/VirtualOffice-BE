@@ -9,6 +9,7 @@ import { UserEntity } from '../user/entity';
 import { ApiFailedRes } from 'src/common/documentation/swagger';
 import { User } from 'src/common/decorators/current-user.decorator';
 import { AuthService } from './service';
+import { cookieDomain } from 'src/common/helpers/common';
 
 @Controller({
   path: 'auth',
@@ -45,13 +46,15 @@ export class AuthController {
       httpOnly: false,
       secure: true,
       path: '/',
-      domain: req.originalUrl,
+      sameSite: 'none',
+      domain: cookieDomain(req.hostname),
     });
     res.cookie(JWT_REFRESH_KEY, refreshToken, {
       httpOnly: false,
       secure: true,
       path: '/',
-      domain: req.originalUrl,
+      sameSite: 'none',
+      domain: cookieDomain(req.hostname),
     });
     return res.status(200).json({
       result: {
@@ -84,13 +87,15 @@ export class AuthController {
       httpOnly: false,
       secure: true,
       path: '/',
-      domain: req.originalUrl,
+      sameSite: 'none',
+      domain: cookieDomain(req.hostname),
     });
     res.cookie(JWT_REFRESH_KEY, refreshToken, {
       httpOnly: false,
       secure: true,
       path: '/',
-      domain: req.originalUrl,
+      sameSite: 'none',
+      domain: cookieDomain(req.hostname),
     });
     return res.status(200).json({
       result: {
