@@ -32,6 +32,13 @@ export class Plan {
   @Prop({
     required: true,
   })
+  @Prop({
+    default: 'USD',
+  })
+  currency: string;
+  @Prop({
+    required: true,
+  })
   monthlyPrice: number; // monthly price
   @Prop({
     required: true,

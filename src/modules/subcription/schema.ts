@@ -28,13 +28,22 @@ export class Subscription {
     type: Types.ObjectId,
   })
   plan: string;
+  @Prop()
+  billingCycle: string;
+  @Prop()
+  stripePriceId: string;
   @Prop({
-    type: SUBSCRIPTION_STATUS,
+    required: true,
   })
+  total: number;
+  @Prop({
+    required: true,
+    default: 'USD',
+  })
+  currency: string;
+  @Prop({})
   status: SUBSCRIPTION_STATUS;
-  @Prop({
-    type: PAYMENT_STATUS,
-  })
+  @Prop({})
   paymentStatus: PAYMENT_STATUS;
   @Prop({
     type: Date,
@@ -44,6 +53,8 @@ export class Subscription {
     type: Date,
   })
   endDate: Date;
+  @Prop()
+  stripeSessionId: string;
   @Prop()
   stripeSubscriptionId: string;
 }
