@@ -1,30 +1,37 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsInt, IsNotEmpty, IsString } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { IsArray, IsInt, IsNotEmpty, IsString } from 'class-validator';
+import { SUBSCRIPTION_STATUS } from './constant';
 
 export class CreatePlanDto {
   @ApiProperty({
-    nullable: false
+    nullable: false,
   })
   @IsNotEmpty()
   @IsString()
-  name: string
+  name: string;
   @ApiProperty({
     nullable: false,
-    description: `Max room that user can create`
+    description: `Max room that user can create`,
   })
   @IsNotEmpty()
   @IsInt()
-  maxRoom: number
+  maxRoom: number;
   @ApiProperty({
     nullable: false,
-    description: `Max people in room`
+    description: `Max people in room`,
   })
   @IsNotEmpty()
   @IsInt()
-  maxRoomCapacity: number
+  maxRoomCapacity: number;
   @ApiProperty({
-    description: `List features`
+    description: `List features`,
   })
   @IsArray()
-  feaetures: string[]
+  feaetures: string[];
+}
+export class QuerySubscriptionDto {
+  @ApiProperty({
+    description: `Subscription status`,
+  })
+  status?: SUBSCRIPTION_STATUS;
 }

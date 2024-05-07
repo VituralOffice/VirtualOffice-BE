@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { RoomService } from './service';
 import { CreateRoomDto, InviteRoomDto, JoinRoomDto, QueryRoomDto } from './dto';
 import { User } from 'src/common/decorators/current-user.decorator';
@@ -10,12 +10,23 @@ import { ROLE } from 'src/common/enum/role';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { isNullOrUndefined } from 'util';
 import { UserService } from '../user/service';
+import { AddMemberChatDto, CreateChatDto, QueryChatDto } from '../chat/dto';
+import { ChatService } from '../chat/service';
+import { CHAT_TYPE } from '../chat/constant';
+import { ChatDocument } from '../chat/schema/chat';
+
+import { genChatName } from './helper';
+import { ChatEntity } from '../chat/entity/chat';
+import { ChatMember } from '../chat/schema/chatMember';
+import { NotFoundRoomGuard } from './guard/room.guard';
+import { NotFoundChatGuard } from './guard/chat.guard';
+import { Chat } from 'src/common/decorators/chat';
 @ApiTags('rooms')
 @Controller({
   path: 'rooms',
 })
 export class RoomController {
-  constructor(private roomService: RoomService, private userService: UserService) {}
+  constructor(private roomService: RoomService, private userService: UserService, private chatService: ChatService) {}
   @Post()
   @ApiBody({ type: CreateRoomDto })
   async create(@Body() body: CreateRoomDto, @User() user: UserEntity) {
@@ -44,6 +55,7 @@ export class RoomController {
       message: `Success`,
     };
   }
+  @UseGuards(NotFoundRoomGuard)
   @Get(':roomId')
   async getRoom(@Param('roomId') roomId: string, @User() user: UserEntity) {
     const room = await this.roomService.findById(roomId);
@@ -55,6 +67,7 @@ export class RoomController {
       message: `Success`,
     };
   }
+
   @Post(':roomId/join_link')
   async joinLink(@Param('roomId') roomId: string, @User() user: UserEntity) {
     const room = await this.roomService.findById(roomId);
@@ -94,6 +107,87 @@ export class RoomController {
       inviterFullName: inviter.fullname || inviter.email,
       roomName: room.name,
     });
+    return {
+      result: null,
+      message: `Success`,
+    };
+  }
+  //********chat endpoints ********/
+  @UseGuards(NotFoundRoomGuard)
+  @Post(':roomId/chats')
+  async createChat(@Body() body: CreateChatDto, @Param('roomId') roomId: string, @User() user: UserEntity) {
+    const chat = new ChatEntity();
+    const members: ChatMember[] = [];
+    switch (true) {
+      case body.type === CHAT_TYPE.GROUP || body.type === CHAT_TYPE.PUBLIC:
+        chat.name = body.name || genChatName();
+        const existName = await this.chatService.findByName(chat.name, roomId);
+        if (existName) throw new ApiException(`chat name exist`);
+        break;
+      case body.type === CHAT_TYPE.PRIVATE:
+        if (!body.members || body.members?.length === 0) throw new ApiException(`empty members`);
+        break;
+    }
+    // validate member
+    if (body.members?.length)
+      await Promise.all(
+        body.members.map(async (userId) => {
+          const member = new ChatMember();
+          const user = await this.userService.findById(userId);
+          if (!user) throw new ApiException(`user not found`);
+          member.role = `user`;
+          member.user = user.id;
+          members.push(member);
+        }),
+      );
+    // creator member
+    const creatorMember = new ChatMember();
+    creatorMember.role = body.type === CHAT_TYPE.PRIVATE ? 'user' : 'admin';
+    creatorMember.user = user.id;
+    members.push(creatorMember);
+    chat.creator = user.id;
+    chat.room = roomId;
+    chat.type = body.type;
+    chat.members = members;
+    const chatDoc = await this.chatService.create(chat);
+    return {
+      result: chatDoc,
+      message: `Success`,
+    };
+  }
+  @Get(':roomId/chats')
+  @UseGuards(NotFoundRoomGuard)
+  async getChats(@Query() query: QueryChatDto, @Param('roomId') roomId: string, @User() user: UserEntity) {
+    const chats = await this.chatService.getAll(user, roomId, query);
+    return {
+      result: chats,
+      message: `Success`,
+    };
+  }
+  @UseGuards(NotFoundRoomGuard, NotFoundChatGuard)
+  @Post(':roomId/chats/:chatId/members')
+  async addMember(@Body() body: AddMemberChatDto, @Param('chatId') chatId: string, @User() user: UserEntity) {
+    const chat = await this.chatService.findById(chatId);
+    const userMember = chat.members.find((m) => m.user.toString() === user.id);
+    if (!userMember) throw new ApiException(`forbidden`, 403);
+    const newMember = await this.userService.findById(body.user);
+    if (!newMember) throw new ApiException(`user not found`, 404);
+    if (await this.chatService.checkUserInChat(newMember, chat)) throw new ApiException(`user has already in chat`);
+    await this.chatService.addMember(chat, newMember);
+    return {
+      result: null,
+      message: `Success`,
+    };
+  }
+  @UseGuards(NotFoundRoomGuard, NotFoundChatGuard)
+  @Delete(':roomId/chats/:chatId/members')
+  async deleteMember(@Body() body: AddMemberChatDto, @Param('chatId') chatId: string, @User() user: UserEntity) {
+    const chat = await this.chatService.findById(chatId);
+    const userMember = chat.members.find((m) => m.user.toString() === user.id);
+    if (!userMember || userMember.role !== 'admin') throw new ApiException(`forbidden`, 403);
+    const newMember = await this.userService.findById(body.user);
+    if (!newMember) throw new ApiException(`user not found`, 404);
+    await this.chatService.deleteMember(chat, newMember);
     return {
       result: null,
       message: `Success`,

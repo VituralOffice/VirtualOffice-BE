@@ -1,11 +1,9 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { Public } from 'src/common/decorators/public.decorator';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { SubscriptionService } from './service';
-import { Roles } from 'src/common/decorators/role.decorator';
-import { ROLE } from 'src/common/enum/role';
-import { CreatePlanDto } from './dto';
-import { ApiException } from 'src/common';
+import { CreatePlanDto, QuerySubscriptionDto } from './dto';
+import { User } from 'src/common/decorators/current-user.decorator';
+import { UserEntity } from '../user/entity';
 
 @ApiTags('subscriptions')
 @Controller({
@@ -13,4 +11,12 @@ import { ApiException } from 'src/common';
 })
 export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}
+  @Get()
+  async getAll(@User() user: UserEntity, @Query() query: QuerySubscriptionDto) {
+    const subscriptions = await this.subscriptionService.findAllBelongToUser(user, query);
+    return {
+      result: subscriptions,
+      message: `Success`,
+    };
+  }
 }

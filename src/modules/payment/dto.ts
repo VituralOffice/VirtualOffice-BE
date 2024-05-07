@@ -18,3 +18,12 @@ export class CreateCheckoutDto {
   @IsString()
   billingCycle: BILLING_CYCLE;
 }
+
+export class RetryCheckoutDto {
+  @ApiProperty({
+    nullable: false,
+  })
+  @IsNotEmpty()
+  @IsString()
+  subscriptionId: string;
+}
