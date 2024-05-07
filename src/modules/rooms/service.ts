@@ -4,7 +4,7 @@ import { Room, RoomDocument, RoomModel } from './schema/room';
 import { UserEntity } from '../user/entity';
 import { RoomEntity } from './entity/room';
 import { JoinRoomPayload, QueryRoomDto, SendJoinLinkPayload } from './dto';
-import { FilterQuery } from 'mongoose';
+import mongoose, { FilterQuery } from 'mongoose';
 import { TokenService } from '../token/service';
 import { ApiException } from 'src/common';
 import { RoomMember } from './schema';
@@ -36,7 +36,7 @@ export class RoomService {
   async findByName(name: string) {
     return this.roomModel.findOne({ name });
   }
-  async findById(id: string) {
+  async findById(id: string | mongoose.Types.ObjectId) {
     return this.roomModel.findById(id);
   }
   async checkUserInRoom(user: UserEntity, room: RoomEntity) {

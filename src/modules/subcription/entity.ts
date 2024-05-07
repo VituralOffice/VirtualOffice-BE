@@ -29,5 +29,7 @@ export class SubscriptionEntity extends Subscription {
   })
   endDate: Date;
   @ApiProperty()
+  stripeSessionId: string;
+  @ApiProperty()
   stripeSubscriptionId: string;
 }
