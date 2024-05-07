@@ -14,7 +14,7 @@ export class PaymentService {
       line_items: [
         {
           price: priceId,
-          quantity: 1,
+          quantity: 1, 
         },
       ],
       mode: 'subscription',
