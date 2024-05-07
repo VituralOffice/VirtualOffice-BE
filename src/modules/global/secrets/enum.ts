@@ -6,5 +6,5 @@ export enum CatsAPIEnvironment {
 export enum AuthAPIEnvironment {
   PORT = 'PORT_AUTH_API',
   SECRET_JWT = 'SECRET_JWT',
-  URL = 'API_URL',
+  URL = 'AUTH_API_URL',
 }
