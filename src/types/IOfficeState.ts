@@ -2,6 +2,7 @@ import { Schema, ArraySchema, SetSchema, MapSchema } from '@colyseus/schema';
 import { UserEntity } from 'src/modules/user/entity';
 
 export interface IPlayer extends UserEntity, Schema {
+  playerName: string;
   x: number;
   y: number;
   anim: string;

@@ -14,6 +14,6 @@ export default class PlayerUpdateNameCommand extends Command<IOfficeState, Paylo
     const player = this.room.state.players.get(client.sessionId);
 
     if (!player) return;
-    player.fullname = name;
+    player.playerName = name;
   }
 }
