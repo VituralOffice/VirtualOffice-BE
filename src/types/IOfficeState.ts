@@ -24,10 +24,13 @@ export interface IChatMessage extends Schema {
   createdAt: number;
   content: string;
 }
-
+export interface IMapMessage extends Schema {
+  id: string;
+  messages: IChatMessage[];
+}
 export interface IOfficeState extends Schema {
   players: MapSchema<IPlayer>;
   computers: MapSchema<IComputer>;
   whiteboards: MapSchema<IWhiteboard>;
-  chatMessages: ArraySchema<IChatMessage>;
+  mapMessages: MapSchema<IMapMessage>;
 }
