@@ -18,3 +18,16 @@ export class AddMemberChatDto {
   @IsString()
   user: string;
 }
+export class ChatMessagePayload {
+  user: string;
+  chat: string;
+  text: string;
+  type: string;
+  //todo: file
+}
+export class BatchChatMessagePayload {
+  chat: string;
+  limit: number;
+  fromId?: string;
+  fromCreatedAt?: Date;
+}
