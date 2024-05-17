@@ -1,6 +1,15 @@
 import { Room, Client, ServerError } from 'colyseus';
 import { Dispatcher } from '@colyseus/command';
-import { Player, OfficeState, Computer, Whiteboard } from './schema/OfficeState';
+import {
+  Player,
+  OfficeState,
+  Computer,
+  Whiteboard,
+  React,
+  ChatMessage,
+  Message as MessageSchema,
+  MapMessage,
+} from './schema/OfficeState';
 import { Message } from '../../types/Messages';
 import { IRoomData } from '../../types/Rooms';
 import { whiteboardRoomIds } from './schema/OfficeState';
@@ -15,6 +24,11 @@ import { verifyJwt } from 'src/common/helpers/jwt';
 import { ISecretsService } from '../global/secrets/adapter';
 import { UserService } from '../user/service';
 import { UserEntity } from '../user/entity';
+import { ChatService } from '../chat/service';
+import { QueryChatDto } from '../chat/dto';
+import { IChatMessage, IMapMessage } from 'src/types/IOfficeState';
+import { ChatMessageDocument } from '../chat/schema/chatMessage';
+
 @Injectable()
 export class VOffice extends Room<OfficeState> {
   private dispatcher = new Dispatcher(this);
@@ -23,6 +37,7 @@ export class VOffice extends Room<OfficeState> {
     private readonly roomService: RoomService,
     private readonly secretService: ISecretsService,
     private readonly userService: UserService,
+    private readonly chatService: ChatService,
   ) {
     super();
   }
@@ -121,21 +136,62 @@ export class VOffice extends Room<OfficeState> {
       });
     });
 
-    // when a player send a chat message, update the message array and broadcast to all connected clients except the sender
-    this.onMessage(Message.ADD_CHAT_MESSAGE, (client, message: { content: string; chatId: string }) => {
-      // update the message array (so that players join later can also see the message)
-      this.dispatcher.dispatch(new ChatMessageUpdateCommand(), {
-        client,
-        content: message.content,
-        chatId: message.chatId,
-      });
-      // broadcast to all currently connected clients except the sender (to render in-game dialog on top of the character)
-      this.broadcast(
-        Message.ADD_CHAT_MESSAGE,
-        { clientId: client.sessionId, content: message.content, chatId: message.chatId },
-        //{ except: client },
+    this.onMessage(Message.LOAD_CHAT, async (client) => {
+      const player = this.state.players.get(client.sessionId);
+      const chats = await this.chatService.getAll(player, this.roomId, new QueryChatDto());
+      const mapChatMessages: IMapMessage[] = [];
+      await Promise.all(
+        chats.map(async (c) => {
+          if (this.state.mapMessages.get(c.id)) mapChatMessages.push(this.state.mapMessages.get(c.id));
+          else {
+            // batch load message when data not in mapMessage (room state)
+            const chatMessages = await this.chatService.batchLoadChatMessages({
+              chat: c.id,
+              limit: 100,
+            });
+            const chatMessageSchemas = convertToChatMessageSchema(chatMessages.reverse());
+            const mapMessage = new MapMessage();
+            mapMessage.id = c.id;
+            mapMessage.messages = chatMessageSchemas;
+            this.state.mapMessages.set(c.id, mapMessage);
+            mapChatMessages.push(this.state.mapMessages.get(c.id));
+          }
+        }),
       );
+      client.send(Message.LOAD_CHAT, { mapChatMessages });
     });
+    // when a player send a chat message, update the message array and broadcast to all connected clients except the sender
+    this.onMessage(
+      Message.ADD_CHAT_MESSAGE,
+      async (client, message: { content: string; chatId: string; type: string }) => {
+        // update the message array (so that players join later can also see the message)
+        const chat = await this.chatService.findById(message.chatId);
+        if (!chat) return;
+        const player = this.state.players.get(client.sessionId);
+        let chatMessage = this.chatService.buildChatMessage({
+          chat: chat.id,
+          text: message.content,
+          type: message.type || 'text',
+          user: player.id,
+        });
+        chatMessage = await this.chatService.addChatMessage(chatMessage);
+        chatMessage.user = player;
+        this.dispatcher.dispatch(new ChatMessageUpdateCommand(), {
+          client,
+          message: chatMessage,
+        });
+        console.log({ mapClients: this.state.mapClients, members: chat.members });
+        // broadcast to all currently connected clients except the sender (to render in-game dialog on top of the character)
+        chat.members.forEach((m) => {
+          this.clients
+            .find((c) => c.sessionId === this.state.mapClients[m.user])
+            ?.send(Message.ADD_CHAT_MESSAGE, {
+              chatId: chat.id,
+              message: chatMessage,
+            });
+        });
+      },
+    );
   }
 
   async onAuth(client: Client, options: { token: string | null }) {
@@ -148,7 +204,9 @@ export class VOffice extends Room<OfficeState> {
     return userProfile;
   }
   async onJoin(client: Client, options: any, auth: UserEntity) {
-    this.state.players.set(client.sessionId, newPlayer(auth));
+    const player = newPlayer(auth);
+    this.state.players.set(client.sessionId, player);
+    this.state.mapClients.set(player.id, client.sessionId);
     client.send(Message.SEND_ROOM_DATA, {
       id: this.roomId,
       name: this.name,
@@ -157,8 +215,11 @@ export class VOffice extends Room<OfficeState> {
 
   onLeave(client: Client, consented: boolean) {
     if (this.state.players.has(client.sessionId)) {
+      const player = this.state.players[client.sessionId];
       this.state.players.delete(client.sessionId);
+      this.state.mapClients.delete(player.id);
     }
+
     this.state.computers.forEach((computer) => {
       if (computer.connectedUser.has(client.sessionId)) {
         computer.connectedUser.delete(client.sessionId);
@@ -217,5 +278,20 @@ export const newPlayer = (user: UserEntity): Player => {
   player.isVerified = user.isVerified;
   player.character = (user as any).character;
   player.fullname = user.fullname;
+  player.playerName = user.fullname;
   return player;
 };
+export const convertToChatMessageSchema = (chatMessages: ChatMessageDocument[]) =>
+  chatMessages.map((cm) => {
+    const icm = new ChatMessage();
+    icm.chat = cm.chat;
+    const m = new MessageSchema();
+    m.text = cm.message.text;
+    m.type = cm.message.type;
+    const reacts: React[] = [];
+    icm.message = m;
+    icm.createdAt = cm.createdAt.toString();
+    icm.reacts = reacts;
+    icm.user = newPlayer(cm.user as UserEntity);
+    return icm;
+  });

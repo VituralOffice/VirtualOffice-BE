@@ -1,5 +1,8 @@
 import { Schema, ArraySchema, SetSchema, MapSchema } from '@colyseus/schema';
 import { UserEntity } from 'src/modules/user/entity';
+import { User } from 'src/modules/user/schema';
+import { Message } from 'src/modules/chat/schema/message';
+import { React } from 'src/modules/chat/schema/react';
 
 export interface IPlayer extends UserEntity, Schema {
   playerName: string;
@@ -20,9 +23,9 @@ export interface IWhiteboard extends Schema {
 }
 
 export interface IChatMessage extends Schema {
-  author: string;
-  createdAt: number;
-  content: string;
+  user: IPlayer;
+  message: Message;
+  reacts: React[];
 }
 export interface IMapMessage extends Schema {
   id: string;
