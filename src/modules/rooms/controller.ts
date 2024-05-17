@@ -42,6 +42,8 @@ export class RoomController {
     roomDoc.creator = user.id;
     roomDoc.members = [member];
     const room = await this.roomService.create(roomDoc);
+    // create public chat in room
+    await this.chatService.createLobbyChat(room, user);
     return {
       result: room,
       message: `Success`,
@@ -86,6 +88,7 @@ export class RoomController {
       throw new ApiException(`token expired`, 400);
     if (await this.roomService.checkUserInRoom(user, room)) throw new ApiException(`user already in room`, 400);
     await this.roomService.joinRoom(room, user);
+    await this.chatService.addMemberToPublicChat(room, user);
     return {
       result: null,
       message: `Success`,

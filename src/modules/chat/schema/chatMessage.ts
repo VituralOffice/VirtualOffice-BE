@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Model, Types } from 'mongoose';
 import { Message } from './message';
 import { React } from './react';
+import { User } from 'src/modules/user/schema';
 
 export type ChatMessageDocument = ChatMessage & Document;
 
@@ -28,7 +29,7 @@ export class ChatMessage {
     type: Types.ObjectId,
     ref: 'User',
   })
-  user: string;
+  user: string | User;
   @Prop({
     type: Message,
   })
@@ -37,6 +38,8 @@ export class ChatMessage {
     type: [React],
   })
   reacts: [React];
+  @Prop()
+  createdAt: Date;
 }
 export const ChatMessageSchema = SchemaFactory.createForClass(ChatMessage);
 export type ChatMessageModel = Model<ChatMessage>;
