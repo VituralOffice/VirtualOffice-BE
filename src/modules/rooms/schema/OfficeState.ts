@@ -30,11 +30,30 @@ export class Whiteboard extends Schema implements IWhiteboard {
   @type('string') roomId = getRoomId();
   @type({ set: 'string' }) connectedUser = new SetSchema<string>();
 }
-
+export class Message extends Schema {
+  @type('string') type = '';
+  @type('string') text = '';
+  @type('string') fileName = '';
+  @type('string') fileType = '';
+  @type('string') path = '';
+  @type('string') createdAt = '';
+}
+export class React extends Schema {
+  @type('string') user = '';
+  @type('string') type = '';
+  @type('string') icon = '';
+}
 export class ChatMessage extends Schema implements IChatMessage {
-  @type('string') author = '';
-  @type('number') createdAt = new Date().getTime();
-  @type('string') content = '';
+  @type(Player)
+  user;
+  @type(Message)
+  message;
+  @type([React])
+  reacts;
+  @type('string')
+  chat = '';
+  @type('string')
+  createdAt = '';
 }
 export class MapMessage extends Schema implements IMapMessage {
   @type('string') id = '';
@@ -52,6 +71,8 @@ export class OfficeState extends Schema implements IOfficeState {
 
   @type({ map: MapMessage })
   mapMessages = new MapSchema<MapMessage>();
+  @type({ map: 'string' })
+  mapClients = new MapSchema<string>();
 }
 
 export const whiteboardRoomIds = new Set<string>();

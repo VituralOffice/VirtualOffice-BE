@@ -13,6 +13,7 @@ import { ICacheService } from '../cache/adapter';
 import { randomHash } from 'src/common/crypto/bcrypt';
 import { ISecretsService } from '../global/secrets/adapter';
 import { MailerService } from '@nestjs-modules/mailer';
+import { ChatService } from '../chat/service';
 @Injectable()
 export class RoomService {
   constructor(
