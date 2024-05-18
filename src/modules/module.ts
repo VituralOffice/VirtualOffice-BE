@@ -18,6 +18,7 @@ import { MapModule } from './map/module';
 import { RoomModule } from './rooms/module';
 import { PlanModule } from './plan/module';
 import { PaymentModule } from './payment/module';
+import { AdminModule } from './admin/module';
 
 @Global()
 @Module({
@@ -37,6 +38,7 @@ import { PaymentModule } from './payment/module';
     RoomModule,
     PlanModule,
     PaymentModule,
+    AdminModule,
     MailerModule.forRootAsync({
       useFactory: (secretsService: ISecretsService) => ({
         transport: {

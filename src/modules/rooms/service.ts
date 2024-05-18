@@ -13,7 +13,8 @@ import { ICacheService } from '../cache/adapter';
 import { randomHash } from 'src/common/crypto/bcrypt';
 import { ISecretsService } from '../global/secrets/adapter';
 import { MailerService } from '@nestjs-modules/mailer';
-import { ChatService } from '../chat/service';
+import { QueryDto } from '../admin/dto';
+import { PaginateResult } from 'src/common/paginate/pagnate';
 @Injectable()
 export class RoomService {
   constructor(
@@ -24,6 +25,40 @@ export class RoomService {
   ) {}
   async create(data: RoomEntity) {
     return this.roomModel.create(data);
+  }
+  async paginate(query: QueryDto) {
+    console.log({ query });
+    const param: FilterQuery<Room> = {};
+    const page = query.page;
+    const limit = query.limit;
+    const skip = (page - 1) * limit;
+    if (query.q) {
+      param.name = { $regex: query.q, $option: 'i' };
+    }
+    const [data, total] = await Promise.all([
+      this.roomModel
+        .find(param)
+        .populate([
+          {
+            path: 'map',
+            select: `name`,
+          },
+          {
+            path: 'creator',
+            select: `fullname`,
+          },
+        ])
+        .limit(limit)
+        .skip(skip)
+        .sort({ createdAt: 'desc' }),
+      this.roomModel.countDocuments(param),
+    ]);
+    return {
+      page,
+      limit,
+      total,
+      data,
+    } as PaginateResult<RoomDocument>;
   }
   /**
    * @description Find all room user has joined

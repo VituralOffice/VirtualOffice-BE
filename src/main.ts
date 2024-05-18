@@ -60,6 +60,7 @@ async function bootstrap() {
   nest.useGlobalPipes(
     new ValidationPipe({
       errorHttpStatusCode: HttpStatus.PRECONDITION_FAILED,
+      transform: true,
     }),
   );
 
