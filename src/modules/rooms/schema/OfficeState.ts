@@ -1,5 +1,5 @@
 import { Schema, ArraySchema, SetSchema, MapSchema, type } from '@colyseus/schema';
-import { IPlayer, IOfficeState, IComputer, IWhiteboard, IChatMessage, IMapMessage } from '../../../types/IOfficeState';
+import { IPlayer, IOfficeState, IMeeting, IWhiteboard, IChatMessage, IMapMessage } from '../../../types/IOfficeState';
 import { CharacterEntity } from 'src/modules/character/entity';
 
 export class Player extends Schema implements IPlayer {
@@ -22,7 +22,7 @@ export class Player extends Schema implements IPlayer {
   @type('boolean') videoConnected = false;
 }
 
-export class Computer extends Schema implements IComputer {
+export class Meeting extends Schema implements IMeeting {
   @type({ set: 'string' }) connectedUser = new SetSchema<string>();
 }
 
@@ -63,8 +63,8 @@ export class OfficeState extends Schema implements IOfficeState {
   @type({ map: Player })
   players = new MapSchema<Player>();
 
-  @type({ map: Computer })
-  computers = new MapSchema<Computer>();
+  @type({ map: Meeting })
+  meetings = new MapSchema<Meeting>();
 
   @type({ map: Whiteboard })
   whiteboards = new MapSchema<Whiteboard>();
