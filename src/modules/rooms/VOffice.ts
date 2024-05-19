@@ -3,7 +3,7 @@ import { Dispatcher } from '@colyseus/command';
 import {
   Player,
   OfficeState,
-  Computer,
+  Meeting,
   Whiteboard,
   React,
   ChatMessage,
@@ -15,7 +15,6 @@ import { IRoomData } from '../../types/Rooms';
 import { whiteboardRoomIds } from './schema/OfficeState';
 import PlayerUpdateCommand from './commands/PlayerUpdateCommand';
 import PlayerUpdateNameCommand from './commands/PlayerUpdateNameCommand';
-import { ComputerAddUserCommand, ComputerRemoveUserCommand } from './commands/ComputerUpdateArrayCommand';
 import { WhiteboardAddUserCommand, WhiteboardRemoveUserCommand } from './commands/WhiteboardUpdateArrayCommand';
 import ChatMessageUpdateCommand from './commands/ChatMessageUpdateCommand';
 import { RoomService } from './service';
@@ -28,6 +27,7 @@ import { ChatService } from '../chat/service';
 import { QueryChatDto } from '../chat/dto';
 import { IChatMessage, IMapMessage } from 'src/types/IOfficeState';
 import { ChatMessageDocument } from '../chat/schema/chatMessage';
+import { MeetingAddUserCommand, MeetingRemoveUserCommand } from './commands/MeetingUpdateArrayCommand';
 
 @Injectable()
 export class VOffice extends Room<OfficeState> {
@@ -48,31 +48,31 @@ export class VOffice extends Room<OfficeState> {
     this.roomId = options.id;
     this.setState(new OfficeState());
     for (let i = 0; i < 5; i++) {
-      this.state.computers.set(String(i), new Computer());
+      this.state.meetings.set(String(i), new Meeting());
     }
     for (let i = 0; i < 3; i++) {
       this.state.whiteboards.set(String(i), new Whiteboard());
     }
-    // when a player connect to a computer, add to the computer connectedUser array
-    this.onMessage(Message.CONNECT_TO_COMPUTER, (client, message: { computerId: string }) => {
-      this.dispatcher.dispatch(new ComputerAddUserCommand(), {
+    // when a player connect to a meeting, add to the meeting connectedUser array
+    this.onMessage(Message.CONNECT_TO_MEETING, (client, message: { meetingId: string }) => {
+      this.dispatcher.dispatch(new MeetingAddUserCommand(), {
         client,
-        computerId: message.computerId,
+        meetingId: message.meetingId,
       });
     });
 
-    // when a player disconnect from a computer, remove from the computer connectedUser array
-    this.onMessage(Message.DISCONNECT_FROM_COMPUTER, (client, message: { computerId: string }) => {
-      this.dispatcher.dispatch(new ComputerRemoveUserCommand(), {
+    // when a player disconnect from a meeting, remove from the meeting connectedUser array
+    this.onMessage(Message.DISCONNECT_FROM_MEETING, (client, message: { meetingId: string }) => {
+      this.dispatcher.dispatch(new MeetingRemoveUserCommand(), {
         client,
-        computerId: message.computerId,
+        meetingId: message.meetingId,
       });
     });
 
     // when a player stop sharing screen
-    this.onMessage(Message.STOP_SCREEN_SHARE, (client, message: { computerId: string }) => {
-      const computer = this.state.computers.get(message.computerId);
-      computer.connectedUser.forEach((id) => {
+    this.onMessage(Message.STOP_SCREEN_SHARE, (client, message: { meetingId: string }) => {
+      const meeting = this.state.meetings.get(message.meetingId);
+      meeting.connectedUser.forEach((id) => {
         this.clients.forEach((cli) => {
           if (cli.sessionId === id && cli.sessionId !== client.sessionId) {
             cli.send(Message.STOP_SCREEN_SHARE, client.sessionId);
@@ -220,9 +220,9 @@ export class VOffice extends Room<OfficeState> {
       this.state.mapClients.delete(player.id);
     }
 
-    this.state.computers.forEach((computer) => {
-      if (computer.connectedUser.has(client.sessionId)) {
-        computer.connectedUser.delete(client.sessionId);
+    this.state.meetings.forEach((meeting) => {
+      if (meeting.connectedUser.has(client.sessionId)) {
+        meeting.connectedUser.delete(client.sessionId);
       }
     });
     this.state.whiteboards.forEach((whiteboard) => {
@@ -246,7 +246,7 @@ export class VOffice extends Room<OfficeState> {
  *
  * @description inject dependencies to any class not initialized by nestjs
  */
-export function injectDeps<T extends { new (...args: any[]): Room }>(app: INestApplication, target: T): T {
+export function injectDeps<T extends { new(...args: any[]): Room }>(app: INestApplication, target: T): T {
   const selfDeps = Reflect.getMetadata('self:paramtypes', target) || [];
   const dependencies = Reflect.getMetadata('design:paramtypes', target) || [];
 
