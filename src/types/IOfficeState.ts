@@ -13,7 +13,7 @@ export interface IPlayer extends UserEntity, Schema {
   videoConnected: boolean;
 }
 
-export interface IComputer extends Schema {
+export interface IMeeting extends Schema {
   connectedUser: SetSchema<string>;
 }
 
@@ -33,7 +33,7 @@ export interface IMapMessage extends Schema {
 }
 export interface IOfficeState extends Schema {
   players: MapSchema<IPlayer>;
-  computers: MapSchema<IComputer>;
+  meetings: MapSchema<IMeeting>;
   whiteboards: MapSchema<IWhiteboard>;
   mapMessages: MapSchema<IMapMessage>;
 }
