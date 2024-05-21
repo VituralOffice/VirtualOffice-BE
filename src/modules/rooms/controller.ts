@@ -8,7 +8,6 @@ import { RoomEntity } from './entity/room';
 import { RoomMember } from './schema/member';
 import { ROLE } from 'src/common/enum/role';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
-import { isNullOrUndefined } from 'util';
 import { UserService } from '../user/service';
 import { AddMemberChatDto, CreateChatDto, QueryChatDto } from '../chat/dto';
 import { ChatService } from '../chat/service';
@@ -62,6 +61,7 @@ export class RoomController {
   async getRoom(@Param('roomId') roomId: string, @User() user: UserEntity) {
     const room = await this.roomService.findById(roomId);
     if (!room) throw new ApiException(`room not found`, 404);
+    await room.populate('map');
     if (!(await this.roomService.checkUserInRoom(user, room)) && room.private)
       throw new ApiException(`user not in room`, 400);
     return {

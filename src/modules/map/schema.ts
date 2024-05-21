@@ -23,7 +23,8 @@ export class Map {
   name: string;
   @Prop()
   capacity: number;
-  
+  @Prop()
+  totalMeeting: number;
 }
 
 export const MapSchema = SchemaFactory.createForClass(Map);

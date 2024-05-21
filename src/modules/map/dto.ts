@@ -10,4 +10,8 @@ export class CreateMapDto {
   @IsNotEmpty()
   @IsInt()
   capacity: number;
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsInt()
+  totalMeeting: number;
 }
