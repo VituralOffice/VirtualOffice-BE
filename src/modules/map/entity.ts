@@ -6,22 +6,12 @@ import { Map } from './schema';
 export class MapEntity extends Map {
   @ApiProperty()
   id?: string;
-
   @ApiProperty()
   @IsNotEmpty()
-  @IsEmail()
-  email: string;
-
+  name: string;
   @ApiProperty()
-  fullname: string;
-
+  @IsNotEmpty()
+  capacity: number;
   @ApiProperty()
-  avatar: string;
-
-  @ApiProperty()
-  role: string;
-
-  @ApiProperty()
-  @Exclude()
-  password: string;
+  totalMeeting: number;
 }
