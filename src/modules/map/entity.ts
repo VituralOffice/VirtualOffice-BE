@@ -14,4 +14,6 @@ export class MapEntity extends Map {
   capacity: number;
   @ApiProperty()
   totalMeeting: number;
+  @ApiProperty()
+  totalChair: number;
 }

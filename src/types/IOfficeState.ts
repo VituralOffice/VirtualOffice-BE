@@ -17,6 +17,10 @@ export interface IMeeting extends Schema {
   connectedUser: SetSchema<string>;
 }
 
+export interface IChair extends Schema {
+  connectedUser: string;
+}
+
 export interface IWhiteboard extends Schema {
   roomId: string;
   connectedUser: SetSchema<string>;
@@ -34,6 +38,7 @@ export interface IMapMessage extends Schema {
 export interface IOfficeState extends Schema {
   players: MapSchema<IPlayer>;
   meetings: MapSchema<IMeeting>;
+  chairs: MapSchema<IChair>;
   whiteboards: MapSchema<IWhiteboard>;
   mapMessages: MapSchema<IMapMessage>;
 }
