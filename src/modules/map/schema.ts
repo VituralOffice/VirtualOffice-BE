@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Model } from 'mongoose';
 import { OAUTH_PROVIDER } from 'src/common/enum/oauth-provider';
 import { ROLE } from 'src/common/enum/role';
+import { getS3Url } from 'src/common/helpers/common';
 
 export type MapDocument = Map & Document;
 
@@ -16,6 +17,7 @@ export type MapDocument = Map & Document;
       delete ret['updatedAt'];
       return ret;
     },
+    getters: true,
   },
 })
 export class Map {
@@ -27,6 +29,16 @@ export class Map {
   totalMeeting: number;
   @Prop()
   totalChair: number;
+  @Prop({
+    default: true,
+  })
+  active: boolean;
+  @Prop({
+    get: (json: string) => {
+      return getS3Url(json);
+    },
+  })
+  json: string;
 }
 
 export const MapSchema = SchemaFactory.createForClass(Map);
