@@ -9,6 +9,7 @@ import {
   ChatMessage,
   Message as MessageSchema,
   MapMessage,
+  Chair,
 } from './schema/OfficeState';
 import { Message } from '../../types/Messages';
 import { IRoomData } from '../../types/Rooms';
@@ -28,6 +29,7 @@ import { QueryChatDto } from '../chat/dto';
 import { IChatMessage, IMapMessage } from 'src/types/IOfficeState';
 import { ChatMessageDocument } from '../chat/schema/chatMessage';
 import { MeetingAddUserCommand, MeetingRemoveUserCommand } from './commands/MeetingUpdateArrayCommand';
+import { ChairRemoveUserCommand, ChairSetUserCommand } from './commands/ChairUpdateCommand';
 
 @Injectable()
 export class VOffice extends Room<OfficeState> {
@@ -53,6 +55,26 @@ export class VOffice extends Room<OfficeState> {
     for (let i = 0; i < 3; i++) {
       this.state.whiteboards.set(String(i), new Whiteboard());
     }
+    for (let i = 0; i < 8; i++) {
+      this.state.chairs.set(String(i), new Chair());
+    }
+
+    // when a player connect to a chair, add to the chair connectedUser array
+    this.onMessage(Message.CONNECT_TO_CHAIR, (client, message: { chairId: string }) => {
+      this.dispatcher.dispatch(new ChairSetUserCommand(), {
+        client,
+        chairId: message.chairId,
+      });
+    });
+
+    // when a player disconnect from a chair, remove from the chair connectedUser array
+    this.onMessage(Message.DISCONNECT_FROM_CHAIR, (client, message: { chairId: string }) => {
+      this.dispatcher.dispatch(new ChairRemoveUserCommand(), {
+        client,
+        chairId: message.chairId,
+      });
+    });
+
     // when a player connect to a meeting, add to the meeting connectedUser array
     this.onMessage(Message.CONNECT_TO_MEETING, (client, message: { meetingId: string }) => {
       this.dispatcher.dispatch(new MeetingAddUserCommand(), {
@@ -246,7 +268,7 @@ export class VOffice extends Room<OfficeState> {
  *
  * @description inject dependencies to any class not initialized by nestjs
  */
-export function injectDeps<T extends { new(...args: any[]): Room }>(app: INestApplication, target: T): T {
+export function injectDeps<T extends { new (...args: any[]): Room }>(app: INestApplication, target: T): T {
   const selfDeps = Reflect.getMetadata('self:paramtypes', target) || [];
   const dependencies = Reflect.getMetadata('design:paramtypes', target) || [];
 
