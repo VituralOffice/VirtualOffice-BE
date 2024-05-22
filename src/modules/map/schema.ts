@@ -25,6 +25,8 @@ export class Map {
   capacity: number;
   @Prop()
   totalMeeting: number;
+  @Prop()
+  totalChair: number;
 }
 
 export const MapSchema = SchemaFactory.createForClass(Map);
