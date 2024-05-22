@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsInt, IsNotEmpty, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateMapDto {
   @ApiProperty()
@@ -8,14 +9,32 @@ export class CreateMapDto {
   name: string;
   @ApiProperty()
   @IsNotEmpty()
-  @IsInt()
+  @Transform(({ value }) => parseInt(value, 10))
   capacity: number;
   @ApiProperty()
   @IsNotEmpty()
-  @IsInt()
+  @Transform(({ value }) => parseInt(value, 10))
   totalMeeting: number;
   @ApiProperty()
   @IsNotEmpty()
-  @IsInt()
+  @Transform(({ value }) => parseInt(value, 10))
   totalChair: number;
+  @ApiProperty()
+  @IsNotEmpty()
+  json: string;
+}
+export class UpdateMapDto {
+  @ApiProperty()
+  name?: string;
+  @ApiProperty()
+  @Transform(({ value }) => parseInt(value, 10))
+  capacity?: number;
+  @ApiProperty()
+  @Transform(({ value }) => parseInt(value, 10))
+  totalMeeting?: number;
+  @ApiProperty()
+  @Transform(({ value }) => parseInt(value, 10))
+  totalChair?: number;
+  @ApiProperty()
+  json?: string;
 }

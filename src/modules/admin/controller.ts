@@ -24,4 +24,13 @@ export class AdminController {
       message: `Success`,
     };
   }
+  @Get('users')
+  @Roles([ROLE.ADMIN])
+  async getUsers(@Query() query: QueryDto) {
+    const result = await this.userService.paginate(query);
+    return {
+      result,
+      message: `Success`,
+    };
+  }
 }
