@@ -14,7 +14,7 @@ import {
 import { Message } from '../../types/Messages';
 import { IRoomData } from '../../types/Rooms';
 import { whiteboardRoomIds } from './schema/OfficeState';
-import PlayerUpdateCommand from './commands/PlayerUpdateCommand';
+import PlayerUpdateCommand, { PlayerUpdateMeetingStatusCommand } from './commands/PlayerUpdateCommand';
 import PlayerUpdateNameCommand from './commands/PlayerUpdateNameCommand';
 import { WhiteboardAddUserCommand, WhiteboardRemoveUserCommand } from './commands/WhiteboardUpdateArrayCommand';
 import ChatMessageUpdateCommand from './commands/ChatMessageUpdateCommand';
@@ -137,6 +137,14 @@ export class VOffice extends Room<OfficeState> {
       });
     });
 
+    // when receiving updatePlayerName message, call the PlayerUpdateNameCommand
+    this.onMessage(Message.UPDATE_PLAYER_MEETING_STATUS, (client, message: { isInMeeting: boolean }) => {
+      this.dispatcher.dispatch(new PlayerUpdateMeetingStatusCommand(), {
+        client,
+        isInMeeting: message.isInMeeting,
+      });
+    });
+
     // when a player is ready to connect, call the PlayerReadyToConnectCommand
     this.onMessage(Message.READY_TO_CONNECT, (client) => {
       const player = this.state.players.get(client.sessionId);
@@ -242,6 +250,12 @@ export class VOffice extends Room<OfficeState> {
       this.state.mapClients.delete(player.id);
     }
 
+    this.state.chairs.forEach((chair) => {
+      if (chair.connectedUser == client.sessionId) {
+        chair.connectedUser = '';
+      }
+    })
+
     this.state.meetings.forEach((meeting) => {
       if (meeting.connectedUser.has(client.sessionId)) {
         meeting.connectedUser.delete(client.sessionId);
@@ -268,7 +282,7 @@ export class VOffice extends Room<OfficeState> {
  *
  * @description inject dependencies to any class not initialized by nestjs
  */
-export function injectDeps<T extends { new (...args: any[]): Room }>(app: INestApplication, target: T): T {
+export function injectDeps<T extends { new(...args: any[]): Room }>(app: INestApplication, target: T): T {
   const selfDeps = Reflect.getMetadata('self:paramtypes', target) || [];
   const dependencies = Reflect.getMetadata('design:paramtypes', target) || [];
 
