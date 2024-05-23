@@ -12,7 +12,6 @@ type Payload = {
 export default class ChatMessageUpdateCommand extends Command<IOfficeState, Payload> {
   execute(data: Payload) {
     const { client, message } = data;
-    console.log({ message });
     const player = this.room.state.players.get(client.sessionId);
     const chatId = message.chat;
     const chatMessage = new ChatMessage();
@@ -20,6 +19,8 @@ export default class ChatMessageUpdateCommand extends Command<IOfficeState, Payl
     const m = new Message();
     m.text = message.message.text;
     m.type = message.message.type;
+    m.path = message.message.path;
+    m.fileName = message.message.fileName;
     const reacts: React[] = [];
     chatMessage.message = m;
     chatMessage.createdAt = message.createdAt.toString();
