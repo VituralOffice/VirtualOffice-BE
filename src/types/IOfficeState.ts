@@ -11,6 +11,7 @@ export interface IPlayer extends UserEntity, Schema {
   anim: string;
   readyToConnect: boolean;
   videoConnected: boolean;
+  isInMeeting: boolean;
 }
 
 export interface IMeeting extends Schema {
