@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Model, Types } from 'mongoose';
+import { getS3Url } from 'src/common/helpers/common';
 
 export type MessageDocument = Message & Document;
 
@@ -14,6 +15,7 @@ export type MessageDocument = Message & Document;
       delete ret['updatedAt'];
       return ret;
     },
+    getters: true,
   },
 })
 export class Message {
@@ -33,6 +35,9 @@ export class Message {
   text: string;
   @Prop({
     default: '',
+    get: (path: string) => {
+      return getS3Url(path);
+    },
   })
   path: string;
 }
