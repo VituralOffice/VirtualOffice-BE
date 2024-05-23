@@ -37,3 +37,19 @@ export class PlayerUpdateMeetingStatusCommand extends Command<IOfficeState, Upda
     player.isInMeeting = isInMeeting;
   }
 }
+
+type UpdateCharacterIdPayload = {
+  client: Client;
+  id: number;
+};
+
+export class PlayerUpdateCharacterIdCommand extends Command<IOfficeState, UpdateCharacterIdPayload> {
+  execute(data: UpdateCharacterIdPayload) {
+    const { client, id } = data;
+
+    const player = this.room.state.players.get(client.sessionId);
+
+    if (!player) return;
+    player.characterId = id;
+  }
+}

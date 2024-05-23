@@ -14,7 +14,7 @@ import {
 import { Message } from '../../types/Messages';
 import { IRoomData } from '../../types/Rooms';
 import { whiteboardRoomIds } from './schema/OfficeState';
-import PlayerUpdateCommand, { PlayerUpdateMeetingStatusCommand } from './commands/PlayerUpdateCommand';
+import PlayerUpdateCommand, { PlayerUpdateCharacterIdCommand, PlayerUpdateMeetingStatusCommand } from './commands/PlayerUpdateCommand';
 import PlayerUpdateNameCommand from './commands/PlayerUpdateNameCommand';
 import { WhiteboardAddUserCommand, WhiteboardRemoveUserCommand } from './commands/WhiteboardUpdateArrayCommand';
 import ChatMessageUpdateCommand from './commands/ChatMessageUpdateCommand';
@@ -103,6 +103,18 @@ export class VOffice extends Room<OfficeState> {
       });
     });
 
+    // when a player stop sharing screen
+    this.onMessage(Message.MEETING_STOP_CAMERA_SHARE, (client, message: { meetingId: string }) => {
+      const meeting = this.state.meetings.get(message.meetingId);
+      meeting.connectedUser.forEach((id) => {
+        this.clients.forEach((cli) => {
+          if (cli.sessionId === id && cli.sessionId !== client.sessionId) {
+            cli.send(Message.MEETING_STOP_CAMERA_SHARE, client.sessionId);
+          }
+        });
+      });
+    });
+
     // when a player connect to a whiteboard, add to the whiteboard connectedUser array
     this.onMessage(Message.CONNECT_TO_WHITEBOARD, (client, message: { whiteboardId: string }) => {
       this.dispatcher.dispatch(new WhiteboardAddUserCommand(), {
@@ -134,6 +146,14 @@ export class VOffice extends Room<OfficeState> {
       this.dispatcher.dispatch(new PlayerUpdateNameCommand(), {
         client,
         name: message.name,
+      });
+    });
+
+    // when receiving updatePlayerName message, call the PlayerUpdateCharacterIdCommand
+    this.onMessage(Message.UPDATE_PLAYER_CHARACTER_ID, (client, message: { id: number }) => {
+      this.dispatcher.dispatch(new PlayerUpdateCharacterIdCommand(), {
+        client,
+        id: message.id,
       });
     });
 

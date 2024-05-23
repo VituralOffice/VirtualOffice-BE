@@ -29,6 +29,7 @@ export class Player extends Schema implements IPlayer {
   @type('boolean') readyToConnect = false;
   @type('boolean') videoConnected = false;
   @type('boolean') isInMeeting = false;
+  @type('number') characterId = 0;
 }
 
 export class Meeting extends Schema implements IMeeting {
