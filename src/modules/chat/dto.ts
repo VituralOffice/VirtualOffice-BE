@@ -23,6 +23,8 @@ export class ChatMessagePayload {
   chat: string;
   text: string;
   type: string;
+  path: string;
+  filename?: string;
   //todo: file
 }
 export class BatchChatMessagePayload {

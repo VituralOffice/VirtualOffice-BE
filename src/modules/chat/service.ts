@@ -94,6 +94,8 @@ export class ChatService {
     const message = new Message();
     message.text = payload.text;
     message.type = payload.type;
+    message.path = payload.path;
+    message.fileName = payload.filename;
     const chatMessage = new ChatMessage();
     chatMessage.chat = payload.chat;
     chatMessage.user = payload.user;

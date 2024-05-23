@@ -41,7 +41,7 @@ export class UploadController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 1000 * 1000 * 50 }),
-          new FileTypeValidator({ fileType: /(image\/jpeg|image\/png|application\/json)/ }),
+          new FileTypeValidator({ fileType: /(image\/jpeg|image\/png|application\/.*)/ }),
         ],
       }),
     )
@@ -61,7 +61,7 @@ export class UploadController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 1000 * 1000 * 50 }),
-          new FileTypeValidator({ fileType: /(image\/jpeg|image\/png|application\/json)/ }),
+          new FileTypeValidator({ fileType: /(image\/jpeg|image\/png|application\/.*)/ }),
         ],
       }),
     )
