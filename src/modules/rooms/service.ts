@@ -111,4 +111,11 @@ export class RoomService {
       },
     });
   }
+  async updateRoomMember(roomId: string, userId: string, payload: Partial<RoomMember>) {
+    const updatePayload: any = {};
+    if (payload.online !== undefined) {
+      updatePayload['members.$.online'] = payload.online;
+    }
+    return this.roomModel.updateOne({ _id: roomId, 'members.user': userId }, { $set: updatePayload });
+  }
 }

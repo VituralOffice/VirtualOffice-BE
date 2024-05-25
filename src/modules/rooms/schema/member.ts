@@ -26,6 +26,10 @@ export class RoomMember {
   @Prop({
     default: false,
   })
+  online: boolean;
+  @Prop({
+    default: false,
+  })
   micStatus: boolean;
   @Prop({
     default: false,

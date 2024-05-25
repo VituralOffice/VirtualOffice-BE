@@ -239,17 +239,21 @@ export class VOffice extends Room<OfficeState> {
     const player = newPlayer(auth);
     this.state.players.set(client.sessionId, player);
     this.state.mapClients.set(player.id, client.sessionId);
+    await this.roomService.updateRoomMember(this.roomId, auth.id, { online: true });
+    const room = await this.roomService.findById(this.roomId);
+    await room.populate(['map', 'members.user']);
     client.send(Message.SEND_ROOM_DATA, {
       id: this.roomId,
-      name: this.name,
+      ...room.toJSON(),
     });
   }
 
-  onLeave(client: Client, consented: boolean) {
+  async onLeave(client: Client, consented: boolean) {
     if (this.state.players.has(client.sessionId)) {
       const player = this.state.players[client.sessionId];
       this.state.players.delete(client.sessionId);
       this.state.mapClients.delete(player.id);
+      this.roomService.updateRoomMember(this.roomId, player.id, { online: false });
     }
 
     this.state.chairs.forEach((chair) => {
