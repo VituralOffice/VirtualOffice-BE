@@ -45,7 +45,7 @@ export class VOffice extends Room<OfficeState> {
   }
   async onCreate(options: IRoomData) {
     this.name = options.name;
-    this.autoDispose = options.autoDispose;
+    this.autoDispose = false;
     this.setMetadata({ ...options });
     this.roomId = options.id;
     this.setState(new OfficeState());
@@ -213,7 +213,8 @@ export class VOffice extends Room<OfficeState> {
     // when a player send a chat message, update the message array and broadcast to all connected clients except the sender
     this.onMessage(
       Message.ADD_CHAT_MESSAGE,
-      async (client, message: { content: string; chatId: string; type: string }) => {
+      async (client, message: { content: string; chatId: string; type: string; path: string; filename: string }) => {
+        if (!message) return;
         // update the message array (so that players join later can also see the message)
         const chat = await this.chatService.findById(message.chatId);
         if (!chat) return;
@@ -222,7 +223,9 @@ export class VOffice extends Room<OfficeState> {
           chat: chat.id,
           text: message.content,
           type: message.type || 'text',
+          path: message.path,
           user: player.id,
+          filename: message.filename,
         });
         chatMessage = await this.chatService.addChatMessage(chatMessage);
         chatMessage.user = player;
@@ -230,7 +233,6 @@ export class VOffice extends Room<OfficeState> {
           client,
           message: chatMessage,
         });
-        console.log({ mapClients: this.state.mapClients, members: chat.members });
         // broadcast to all currently connected clients except the sender (to render in-game dialog on top of the character)
         chat.members.forEach((m) => {
           this.clients
@@ -257,24 +259,28 @@ export class VOffice extends Room<OfficeState> {
     const player = newPlayer(auth);
     this.state.players.set(client.sessionId, player);
     this.state.mapClients.set(player.id, client.sessionId);
+    await this.roomService.updateRoomMember(this.roomId, auth.id, { online: true });
+    const room = await this.roomService.findById(this.roomId);
+    await room.populate(['map', 'members.user']);
     client.send(Message.SEND_ROOM_DATA, {
       id: this.roomId,
-      name: this.name,
+      ...room.toJSON(),
     });
   }
 
-  onLeave(client: Client, consented: boolean) {
+  async onLeave(client: Client, consented: boolean) {
     if (this.state.players.has(client.sessionId)) {
       const player = this.state.players[client.sessionId];
       this.state.players.delete(client.sessionId);
       this.state.mapClients.delete(player.id);
+      this.roomService.updateRoomMember(this.roomId, player.id, { online: false });
     }
 
     this.state.chairs.forEach((chair) => {
       if (chair.connectedUser == client.sessionId) {
         chair.connectedUser = '';
       }
-    })
+    });
 
     this.state.meetings.forEach((meeting) => {
       if (meeting.connectedUser.has(client.sessionId)) {
@@ -302,7 +308,7 @@ export class VOffice extends Room<OfficeState> {
  *
  * @description inject dependencies to any class not initialized by nestjs
  */
-export function injectDeps<T extends { new(...args: any[]): Room }>(app: INestApplication, target: T): T {
+export function injectDeps<T extends { new (...args: any[]): Room }>(app: INestApplication, target: T): T {
   const selfDeps = Reflect.getMetadata('self:paramtypes', target) || [];
   const dependencies = Reflect.getMetadata('design:paramtypes', target) || [];
 
