@@ -124,8 +124,8 @@ export class RoomController {
     switch (true) {
       case body.type === CHAT_TYPE.GROUP || body.type === CHAT_TYPE.PUBLIC:
         chat.name = body.name || genChatName();
-        const existName = await this.chatService.findByName(chat.name, roomId);
-        if (existName) throw new ApiException(`chat name exist`);
+        // const existName = await this.chatService.findByName(chat.name, roomId);
+        // if (existName) throw new ApiException(`chat name exist`);
         break;
       case body.type === CHAT_TYPE.PRIVATE:
         if (!body.members || body.members?.length === 0) throw new ApiException(`empty members`);
