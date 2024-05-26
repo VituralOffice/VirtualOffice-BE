@@ -15,6 +15,9 @@ export class MeetingAddUserCommand extends Command<IOfficeState, Payload> {
 
     if (!meeting || meeting.connectedUser.has(clientId)) return;
     meeting.connectedUser.add(clientId);
+    if (!meeting.isOpen) {
+      meeting.isOpen = true;
+    }
   }
 }
 
@@ -25,6 +28,9 @@ export class MeetingRemoveUserCommand extends Command<IOfficeState, Payload> {
 
     if (meeting.connectedUser.has(client.sessionId)) {
       meeting.connectedUser.delete(client.sessionId);
+      if (meeting.connectedUser.size == 0 && meeting.isOpen) {
+        meeting.isOpen = false;
+      }
     }
   }
 }
