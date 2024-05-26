@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
-import { CreateMapDto } from './dto';
+import { Body, Controller, Get, Param, Patch, Post, Put } from '@nestjs/common';
+import { CreateMapDto, UpdateMapDto } from './dto';
 import { MapService } from './service';
 import { ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/role.decorator';
@@ -38,6 +38,22 @@ export class MapController {
   async findOne(@Param(`id`) id: string) {
     const map = await this.mapService.findById(id);
     if (!map) throw new ApiException(`map not found`, 404);
+    return {
+      result: map,
+      message: `Success`,
+    };
+  }
+  @Put(`:id`)
+  @Roles([ROLE.ADMIN])
+  async update(@Param(`id`) id: string, @Body() data: UpdateMapDto) {
+    const map = await this.mapService.findById(id);
+    if (!map) throw new ApiException(`map not found`, 404);
+    if (data.json) map.json = data.json;
+    if (data.totalChair) map.totalChair = data.totalChair;
+    if (data.totalMeeting) map.totalMeeting = data.totalMeeting;
+    if (data.name) map.name = data.name;
+    if (data.capacity) map.capacity = data.capacity;
+    await map.save();
     return {
       result: map,
       message: `Success`,

@@ -61,7 +61,7 @@ export class RoomController {
   async getRoom(@Param('roomId') roomId: string, @User() user: UserEntity) {
     const room = await this.roomService.findById(roomId);
     if (!room) throw new ApiException(`room not found`, 404);
-    await room.populate('map');
+    await room.populate(['map', 'members.user']);
     if (!(await this.roomService.checkUserInRoom(user, room)) && room.private)
       throw new ApiException(`user not in room`, 400);
     return {
