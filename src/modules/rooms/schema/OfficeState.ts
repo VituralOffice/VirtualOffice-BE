@@ -34,6 +34,7 @@ export class Player extends Schema implements IPlayer {
 
 export class Meeting extends Schema implements IMeeting {
   @type({ set: 'string' }) connectedUser = new SetSchema<string>();
+  @type('boolean') isOpen = false;
 }
 
 export class Chair extends Schema implements IChair {
