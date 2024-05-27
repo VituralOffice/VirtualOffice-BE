@@ -7,6 +7,28 @@ type Payload = {
   meetingId: string;
 };
 
+type MeetingChangeInfoPayload = {
+  client: Client;
+  meetingId: string;
+  title: string;
+  chatId: string;
+};
+
+export class MeetingChangeInfoCommand extends Command<IOfficeState, MeetingChangeInfoPayload> {
+  execute(data: MeetingChangeInfoPayload) {
+    const { client, meetingId, title, chatId } = data;
+    const meeting = this.room.state.meetings.get(meetingId);
+    const clientId = client.sessionId;
+
+    if (!meeting || meeting.connectedUser.has(clientId)) return;
+    meeting.title = title;
+    meeting.chatId = chatId;
+    if (!meeting.isOpen) {
+      meeting.isOpen = true;
+    }
+  }
+}
+
 export class MeetingAddUserCommand extends Command<IOfficeState, Payload> {
   execute(data: Payload) {
     const { client, meetingId } = data;
