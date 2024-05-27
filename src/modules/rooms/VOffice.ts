@@ -14,7 +14,10 @@ import {
 import { Message } from '../../types/Messages';
 import { IRoomData } from '../../types/Rooms';
 import { whiteboardRoomIds } from './schema/OfficeState';
-import PlayerUpdateCommand, { PlayerUpdateCharacterIdCommand, PlayerUpdateMeetingStatusCommand } from './commands/PlayerUpdateCommand';
+import PlayerUpdateCommand, {
+  PlayerUpdateCharacterIdCommand,
+  PlayerUpdateMeetingStatusCommand,
+} from './commands/PlayerUpdateCommand';
 import PlayerUpdateNameCommand from './commands/PlayerUpdateNameCommand';
 import { WhiteboardAddUserCommand, WhiteboardRemoveUserCommand } from './commands/WhiteboardUpdateArrayCommand';
 import ChatMessageUpdateCommand from './commands/ChatMessageUpdateCommand';
@@ -28,7 +31,11 @@ import { ChatService } from '../chat/service';
 import { QueryChatDto } from '../chat/dto';
 import { IChatMessage, IMapMessage } from 'src/types/IOfficeState';
 import { ChatMessageDocument } from '../chat/schema/chatMessage';
-import { MeetingAddUserCommand, MeetingRemoveUserCommand } from './commands/MeetingUpdateArrayCommand';
+import {
+  MeetingAddUserCommand,
+  MeetingChangeInfoCommand,
+  MeetingRemoveUserCommand,
+} from './commands/MeetingUpdateArrayCommand';
 import { ChairRemoveUserCommand, ChairSetUserCommand } from './commands/ChairUpdateCommand';
 
 @Injectable()
@@ -82,6 +89,19 @@ export class VOffice extends Room<OfficeState> {
         meetingId: message.meetingId,
       });
     });
+
+    // when a player connect to a meeting, add to the meeting connectedUser array
+    this.onMessage(
+      Message.MEETING_CHANGE_INFO,
+      (client, message: { meetingId: string; title: string; chatId: string }) => {
+        this.dispatcher.dispatch(new MeetingChangeInfoCommand(), {
+          client,
+          meetingId: message.meetingId,
+          title: message.title,
+          chatId: message.chatId,
+        });
+      },
+    );
 
     // when a player disconnect from a meeting, remove from the meeting connectedUser array
     this.onMessage(Message.DISCONNECT_FROM_MEETING, (client, message: { meetingId: string }) => {

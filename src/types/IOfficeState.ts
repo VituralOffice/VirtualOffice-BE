@@ -18,6 +18,8 @@ export interface IPlayer extends UserEntity, Schema {
 export interface IMeeting extends Schema {
   connectedUser: SetSchema<string>;
   isOpen: boolean;
+  title: string;
+  chatId: string;
 }
 
 export interface IChair extends Schema {
