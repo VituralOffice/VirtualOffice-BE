@@ -4,6 +4,7 @@ import { SubscriptionModel, SubscriptionDocument, Subscription } from './schema'
 import { QuerySubscriptionDto } from './dto';
 import { FilterQuery } from 'mongoose';
 import { UserEntity } from '../user/entity';
+import { PlanEntity } from '../plan/entity';
 @Injectable()
 export class SubscriptionService {
   constructor(@Inject(SUBSCRIPTION_MODEL) private readonly subscriptionModel: SubscriptionModel) {}
@@ -31,6 +32,22 @@ export class SubscriptionService {
     return this.subscriptionModel.findById(id);
   }
   async create(doc: Partial<SubscriptionDocument>) {
+    const subscription = new this.subscriptionModel(doc);
+    return subscription.save();
+  }
+  async findActiveSubscription(user: UserEntity) {
+    return this.subscriptionModel.findOne({
+      status: SUBSCRIPTION_STATUS.ACTIVE,
+      user: user.id,
+    });
+  }
+  async subscribeFreePlan(user: UserEntity, plan: PlanEntity) {
+    const doc = new Subscription();
+    doc.freePlan = true;
+    doc.total = 0;
+    doc.plan = plan.id;
+    doc.status = SUBSCRIPTION_STATUS.ACTIVE;
+    doc.user = user.id;
     const subscription = new this.subscriptionModel(doc);
     return subscription.save();
   }
