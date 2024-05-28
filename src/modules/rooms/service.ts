@@ -27,7 +27,6 @@ export class RoomService {
     return this.roomModel.create(data);
   }
   async paginate(query: QueryDto) {
-    console.log({ query });
     const param: FilterQuery<Room> = {};
     const page = query.page;
     const limit = query.limit;
