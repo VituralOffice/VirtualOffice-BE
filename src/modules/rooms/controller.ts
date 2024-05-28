@@ -19,18 +19,42 @@ import { ChatEntity } from '../chat/entity/chat';
 import { ChatMember } from '../chat/schema/chatMember';
 import { NotFoundRoomGuard } from './guard/room.guard';
 import { NotFoundChatGuard } from './guard/chat.guard';
-import { Chat } from 'src/common/decorators/chat';
+import { SubscriptionService } from '../subcription/service';
+import { PlanService } from '../plan/service';
+import { Plan } from '../plan/schema';
 @ApiTags('rooms')
 @Controller({
   path: 'rooms',
 })
 export class RoomController {
-  constructor(private roomService: RoomService, private userService: UserService, private chatService: ChatService) {}
+  constructor(
+    private roomService: RoomService,
+    private userService: UserService,
+    private chatService: ChatService,
+    private subscriptionService: SubscriptionService,
+    private planService: PlanService,
+  ) {}
   @Post()
   @ApiBody({ type: CreateRoomDto })
   async create(@Body() body: CreateRoomDto, @User() user: UserEntity) {
     const existName = await this.roomService.findByName(body.name);
     if (existName) throw new ApiException(`room name exist`, 400);
+    let activeSubscription = await this.subscriptionService.findActiveSubscription(user);
+    // todo: optimize later
+    // subscribe for free plan
+    if (!activeSubscription) {
+      const freePlan = await this.planService.findOne({ free: true });
+      activeSubscription = await this.subscriptionService.subscribeFreePlan(user, freePlan);
+    }
+    // check room limit
+    const totalRoom = await this.roomService.countRoom(user);
+    await activeSubscription.populate(`plan`);
+    console.log({
+      totalRoom,
+      activeSubscription,
+    });
+    if (totalRoom >= (activeSubscription.plan as Plan).maxRoom)
+      throw new ApiException(`Reach limit room on plan, please subscribe for new plan`, 400);
     const roomDoc = new RoomEntity();
     const member = new RoomMember();
     member.user = user.id;
@@ -98,12 +122,18 @@ export class RoomController {
   async invite(@Param('roomId') roomId: string, @Body() body: InviteRoomDto, @User() inviter: UserEntity) {
     const room = await this.roomService.findById(roomId);
     if (!room) throw new ApiException(`room not found`, 404);
+    const activeSubscription = await (await this.subscriptionService.findActiveSubscription(inviter)).populate('plan');
+    console.log({
+      activeSubscription,
+      room,
+    });
+    if (room.members.length >= (activeSubscription.plan as Plan).maxRoomCapacity)
+      throw new ApiException(`Reach limit room capacity on plan, please subscribe for new plan`, 400);
     const user = await this.userService.findByEmail(body.email);
     if (user) {
       if (await this.roomService.checkUserInRoom(user, room)) throw new ApiException(`user already in room`, 400);
     }
     const url = await this.roomService.genJoinLink(room);
-    console.log({ inviter });
     await this.roomService.sendJoinLink({
       email: body.email,
       url,

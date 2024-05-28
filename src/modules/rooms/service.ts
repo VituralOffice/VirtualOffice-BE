@@ -118,4 +118,9 @@ export class RoomService {
     }
     return this.roomModel.updateOne({ _id: roomId, 'members.user': userId }, { $set: updatePayload });
   }
+  async countRoom(user: UserEntity) {
+    return this.roomModel.countDocuments({
+      creator: user.id,
+    });
+  }
 }
