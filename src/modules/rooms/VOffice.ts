@@ -93,7 +93,7 @@ export class VOffice extends Room<OfficeState> {
     // when a player connect to a meeting, add to the meeting connectedUser array
     this.onMessage(
       Message.MEETING_CHANGE_INFO,
-      (client, message: { meetingId: string; title: string; chatId: string }) => {
+      (client, message: { meetingId: string; title?: string; chatId?: string }) => {
         this.dispatcher.dispatch(new MeetingChangeInfoCommand(), {
           client,
           meetingId: message.meetingId,
