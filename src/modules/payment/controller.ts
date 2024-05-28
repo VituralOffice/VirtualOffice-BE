@@ -56,7 +56,7 @@ export class PaymentController {
       billingCycle: body.billingCycle,
       stripePriceId: priceId,
     });
-    const session = await this.paymentService.createCheckoutSession(priceId, subscription.id);
+    const session = await this.paymentService.createCheckoutSession(user, priceId, subscription.id);
     // save stripe session id for payment callback
     subscription.stripeSessionId = session.id;
     await subscription.save();
@@ -77,7 +77,7 @@ export class PaymentController {
     // todo: handle more cases
     subscription.status = SUBSCRIPTION_STATUS.PENDING;
     subscription.paymentStatus = PAYMENT_STATUS.PENDING;
-    const session = await this.paymentService.createCheckoutSession(subscription.stripePriceId, subscription.id);
+    const session = await this.paymentService.createCheckoutSession(user, subscription.stripePriceId, subscription.id);
     // save stripe session id for payment callback
     subscription.stripeSessionId = session.id;
     await subscription.save();
@@ -92,10 +92,14 @@ export class PaymentController {
   @Public()
   @Get('/subscriptions/:subscriptionId/success')
   async subscriptionCallbackSuccess(@Param('subscriptionId') subscriptionId: string, @Res() res: Response) {
+    console.log(`this`);
     const redirectUrl = `${this.secretsService.APP_URL}/subscription`;
     const subscription = await this.subscriptionService.findById(subscriptionId);
     if (!subscription) return res.redirect(redirectUrl);
     const session = await this.paymentService.retrieveSession(subscription.stripeSessionId);
+    console.log({
+      session,
+    });
     if (!session) return res.redirect(redirectUrl);
     if (session.status === 'complete') {
       subscription.status = SUBSCRIPTION_STATUS.ACTIVE;
