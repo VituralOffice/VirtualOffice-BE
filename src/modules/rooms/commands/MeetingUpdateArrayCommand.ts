@@ -23,9 +23,6 @@ export class MeetingChangeInfoCommand extends Command<IOfficeState, MeetingChang
     if (!meeting || meeting.connectedUser.has(clientId)) return;
     meeting.title = title;
     meeting.chatId = chatId;
-    if (!meeting.isOpen) {
-      meeting.isOpen = true;
-    }
   }
 }
 
@@ -52,6 +49,9 @@ export class MeetingRemoveUserCommand extends Command<IOfficeState, Payload> {
       meeting.connectedUser.delete(client.sessionId);
       if (meeting.connectedUser.size == 0 && meeting.isOpen) {
         meeting.isOpen = false;
+        meeting.title = '';
+        meeting.chatId = '';
+        console.log('End meeting ' + meetingId);
       }
     }
   }
