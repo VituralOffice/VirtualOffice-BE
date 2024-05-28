@@ -5,11 +5,46 @@ import { QuerySubscriptionDto } from './dto';
 import { FilterQuery } from 'mongoose';
 import { UserEntity } from '../user/entity';
 import { PlanEntity } from '../plan/entity';
+import { QueryDto } from '../admin/dto';
+import { PaginateResult } from 'src/common/paginate/pagnate';
 @Injectable()
 export class SubscriptionService {
   constructor(@Inject(SUBSCRIPTION_MODEL) private readonly subscriptionModel: SubscriptionModel) {}
   async findAll() {
     return this.subscriptionModel.find();
+  }
+  async paginate(query: QueryDto) {
+    const param: FilterQuery<Subscription> = {};
+    const page = query.page;
+    const limit = query.limit;
+    const skip = (page - 1) * limit;
+    if (query.q) {
+      // todo:
+    }
+    const [data, total] = await Promise.all([
+      this.subscriptionModel
+        .find(param)
+        .populate([
+          {
+            path: 'plan',
+            select: `name`,
+          },
+          {
+            path: 'user',
+            select: `fullname`,
+          },
+        ])
+        .limit(limit)
+        .skip(skip)
+        .sort({ createdAt: 'desc' }),
+      this.subscriptionModel.countDocuments(param),
+    ]);
+    return {
+      page,
+      limit,
+      total,
+      data,
+    } as PaginateResult<Subscription>;
   }
   async findAllBelongToUser(user: UserEntity, query: QuerySubscriptionDto) {
     const param: FilterQuery<Subscription> = {
