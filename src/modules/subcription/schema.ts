@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Model, Types } from 'mongoose';
 import { PAYMENT_STATUS, SUBSCRIPTION_STATUS } from './constant';
+import { Plan } from '../plan/schema';
 
 export type SubscriptionDocument = Subscription & Document;
 
@@ -24,10 +25,14 @@ export class Subscription {
   })
   user: string;
   @Prop({
+    default: false,
+  })
+  freePlan: boolean;
+  @Prop({
     ref: 'Plan',
     type: Types.ObjectId,
   })
-  plan: string;
+  plan: string | Plan;
   @Prop()
   billingCycle: string;
   @Prop()

@@ -23,6 +23,11 @@ export class Plan {
   name: string;
   @Prop({
     required: true,
+    default: false,
+  })
+  free: boolean;
+  @Prop({
+    required: true,
   })
   maxRoom: number;
   @Prop({
