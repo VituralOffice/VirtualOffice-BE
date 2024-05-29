@@ -11,34 +11,34 @@ type Payload = {
 
 export default class ChatMessageUpdateCommand extends Command<IOfficeState, Payload> {
   execute(data: Payload) {
-    const { client, message } = data;
-    const player = this.room.state.players.get(client.sessionId);
-    const chatId = message.chat;
-    const chatMessage = new ChatMessage();
-    chatMessage.chat = message.chat;
-    const m = new Message();
-    m.text = message.message.text;
-    m.type = message.message.type;
-    m.path = message.message.path;
-    m.fileName = message.message.fileName;
-    const reacts: React[] = [];
-    chatMessage.message = m;
-    chatMessage.createdAt = message.createdAt.toString();
-    chatMessage.reacts = reacts;
-    chatMessage.user = player;
-    if (!this.room.state.mapMessages.has(chatId)) {
-      const map = new MapMessage();
-      map.id = chatId;
-      map.messages = [chatMessage];
-      this.room.state.mapMessages[chatId] = map;
-    } else {
-      /**
-       * Only allow server to store a maximum of 100 chat messages:
-       * remove the first element before pushing a new one when array length is >= 100
-       */
-      if (this.room.state.mapMessages[chatId].messages.length >= 100)
-        this.room.state.mapMessages[chatId].messages.shift();
-      this.room.state.mapMessages[chatId].messages.push(chatMessage);
-    }
+    // const { client, message } = data;
+    // const player = this.room.state.players.get(client.sessionId);
+    // const chatId = message.chat;
+    // const chatMessage = new ChatMessage();
+    // chatMessage.chat = message.chat;
+    // const m = new Message();
+    // m.text = message.message.text;
+    // m.type = message.message.type;
+    // m.path = message.message.path;
+    // m.fileName = message.message.fileName;
+    // const reacts: React[] = [];
+    // chatMessage.message = m;
+    // chatMessage.createdAt = message.createdAt.toString();
+    // chatMessage.reacts = reacts;
+    // chatMessage.user = player;
+    // if (!this.room.state.mapMessages.has(chatId)) {
+    //   const map = new MapMessage();
+    //   map.id = chatId;
+    //   map.messages = [chatMessage];
+    //   this.room.state.mapMessages[chatId] = map;
+    // } else {
+    //   /**
+    //    * Only allow server to store a maximum of 100 chat messages:
+    //    * remove the first element before pushing a new one when array length is >= 100
+    //    */
+    //   if (this.room.state.mapMessages[chatId].messages.length >= 100)
+    //     this.room.state.mapMessages[chatId].messages.shift();
+    //   this.room.state.mapMessages[chatId].messages.push(chatMessage);
+    // }
   }
 }

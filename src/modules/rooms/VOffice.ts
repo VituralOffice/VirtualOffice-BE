@@ -38,6 +38,9 @@ import {
   MeetingUnLockCommand,
 } from './commands/MeetingUpdateArrayCommand';
 import { ChairRemoveUserCommand, ChairSetUserCommand } from './commands/ChairUpdateCommand';
+import { ChatEntity } from '../chat/entity/chat';
+import { ChatMember } from '../chat/schema/chatMember';
+import { CHAT_TYPE } from '../chat/constant';
 
 @Injectable()
 export class VOffice extends Room<OfficeState> {
@@ -84,13 +87,81 @@ export class VOffice extends Room<OfficeState> {
     });
 
     // when a player connect to a meeting, add to the meeting connectedUser array
-    this.onMessage(Message.CONNECT_TO_MEETING, (client, message: { meetingId: string }) => {
-      this.dispatcher.dispatch(new MeetingAddUserCommand(), {
-        client,
-        meetingId: message.meetingId,
-      });
-      client.send(Message.MEETING_RECEIVE, this.state.meetings.get(message.meetingId));
-    });
+    this.onMessage(
+      Message.CONNECT_TO_MEETING,
+      async (client, message: { roomId: string; meetingId: string; userId: string; title?: string }) => {
+        console.log('on CONNECT_TO_MEETING');
+        const meeting = this.state.meetings.get(message.meetingId);
+        const user = await this.userService.findById(message.userId);
+        if (!user) return;
+
+        if (meeting.connectedUser.size === 0) {
+          // if no one in meeeting, create new chat
+          const chat = new ChatEntity();
+          const members: ChatMember[] = [];
+          chat.name = message.title;
+          // creator member
+          const creatorMember = new ChatMember();
+          creatorMember.role = 'admin';
+          creatorMember.user = message.userId;
+          members.push(creatorMember);
+          chat.creator = message.userId;
+          chat.room = message.roomId;
+          chat.type = CHAT_TYPE.GROUP;
+          chat.members = members;
+          const chatDoc = await this.chatService.create(chat);
+
+          // set meeting info
+          meeting.chatId = chatDoc.id;
+          meeting.title = chat.name;
+
+          client.send(Message.CONNECT_TO_MEETING, {
+            meetingId: message.meetingId,
+            chatId: chatDoc.id,
+            title: chat.name,
+          });
+          console.log('send new group chaat', chat.name);
+        } else {
+          const chatId = meeting.chatId;
+          if (chatId === '') return;
+          const chat = await this.chatService.findById(chatId);
+          if (!chat) return;
+          const member = chat.members.find((m) => m.user === message.userId);
+          if (member) {
+            //TODO: remove leaveAt prop
+          } else {
+            const newMember = new ChatMember();
+            newMember.user = message.userId;
+            newMember.role = `user`;
+            chat.members.push(newMember);
+            await chat.save();
+          }
+          client.send(Message.CONNECT_TO_MEETING, { meetingId: message.meetingId, chatId: chat.id, title: chat.name });
+          console.log('send exists group chat', chat.name);
+        }
+
+        this.dispatcher.dispatch(new MeetingAddUserCommand(), {
+          client,
+          meetingId: message.meetingId,
+          userId: message.userId,
+          title: message.title,
+        });
+      },
+    );
+
+    // // when a player connect to a meeting, add to the meeting connectedUser array
+    // this.onMessage(
+    //   Message.MEETING_CHANGE_INFO,
+    //   (client, message: { meetingId: string; title?: string; chatId?: string }) => {
+    //     this.dispatcher.dispatch(new MeetingChangeInfoCommand(), {
+    //       client,
+    //       meetingId: message.meetingId,
+    //       title: message.title,
+    //       chatId: message.chatId,
+    //     });
+    //   },
+    // );
+
     this.onMessage(Message.MEETING_LOCK, (client, message: { meetingId: string }) => {
       this.dispatcher.dispatch(new MeetingLockCommand(), {
         client,
@@ -103,11 +174,13 @@ export class VOffice extends Room<OfficeState> {
         meetingId: message.meetingId,
       });
     });
+
     // when a player disconnect from a meeting, remove from the meeting connectedUser array
-    this.onMessage(Message.DISCONNECT_FROM_MEETING, (client, message: { meetingId: string }) => {
+    this.onMessage(Message.DISCONNECT_FROM_MEETING, (client, message: { meetingId: string; userId: string }) => {
       this.dispatcher.dispatch(new MeetingRemoveUserCommand(), {
         client,
         meetingId: message.meetingId,
+        userId: message.userId,
       });
     });
 
@@ -212,20 +285,20 @@ export class VOffice extends Room<OfficeState> {
       const mapChatMessages: IMapMessage[] = [];
       await Promise.all(
         chats.map(async (c) => {
-          if (this.state.mapMessages.get(c.id)) mapChatMessages.push(this.state.mapMessages.get(c.id));
-          else {
-            // batch load message when data not in mapMessage (room state)
-            const chatMessages = await this.chatService.batchLoadChatMessages({
-              chat: c.id,
-              limit: 100,
-            });
-            const chatMessageSchemas = convertToChatMessageSchema(chatMessages.reverse());
-            const mapMessage = new MapMessage();
-            mapMessage.id = c.id;
-            mapMessage.messages = chatMessageSchemas;
-            this.state.mapMessages.set(c.id, mapMessage);
-            mapChatMessages.push(this.state.mapMessages.get(c.id));
-          }
+          // if (this.state.mapMessages.get(c.id)) mapChatMessages.push(this.state.mapMessages.get(c.id));
+          // else {
+          // batch load message when data not in mapMessage (room state)
+          const chatMessages = await this.chatService.batchLoadChatMessages({
+            chat: c.id,
+            limit: 100,
+          });
+          const chatMessageSchemas = convertToChatMessageSchema(chatMessages.reverse());
+          const mapMessage = new MapMessage();
+          mapMessage.id = c.id;
+          mapMessage.messages = chatMessageSchemas;
+          // this.state.mapMessages.set(c.id, mapMessage);
+          mapChatMessages.push(mapMessage);
+          // }
         }),
       );
       client.send(Message.LOAD_CHAT, { mapChatMessages });
@@ -249,10 +322,10 @@ export class VOffice extends Room<OfficeState> {
         });
         chatMessage = await this.chatService.addChatMessage(chatMessage);
         chatMessage.user = player;
-        this.dispatcher.dispatch(new ChatMessageUpdateCommand(), {
-          client,
-          message: chatMessage,
-        });
+        // this.dispatcher.dispatch(new ChatMessageUpdateCommand(), {
+        //   client,
+        //   message: chatMessage,
+        // });
         // broadcast to all currently connected clients except the sender (to render in-game dialog on top of the character)
         chat.members.forEach((m) => {
           this.clients
@@ -267,7 +340,7 @@ export class VOffice extends Room<OfficeState> {
   }
 
   async onAuth(client: Client, options: { token: string | null }) {
-    if (!options.token) throw new ServerError(403, 'Forbidden, must be authenticated');
+    if (!options.token) throw new ServerError(403, 'Forbidden, must be authenticateed');
     const payload = verifyJwt(options.token, this.secretService.jwt.accessSecret);
     if (!payload) throw new ServerError(401, 'Unauthorized');
     const user = await this.userService.findById(payload.userId);
@@ -335,7 +408,7 @@ export class VOffice extends Room<OfficeState> {
  *
  * @description inject dependencies to any class not initialized by nestjs
  */
-export function injectDeps<T extends { new (...args: any[]): Room }>(app: INestApplication, target: T): T {
+export function injectDeps<T extends { new(...args: any[]): Room }>(app: INestApplication, target: T): T {
   const selfDeps = Reflect.getMetadata('self:paramtypes', target) || [];
   const dependencies = Reflect.getMetadata('design:paramtypes', target) || [];
 
