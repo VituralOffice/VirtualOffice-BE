@@ -36,7 +36,7 @@ export class ChatService {
   async getOne(user: UserEntity, roomId: string, chatId: string) {
     const param: FilterQuery<Chat> = { _id: chatId, members: { $elemMatch: { user: user.id } }, room: roomId };
 
-    return this.chatModel.find(param).populate('members.user');
+    return this.chatModel.findOne(param).populate('members.user');
   }
   async create(chat: Partial<ChatDocument>) {
     return this.chatModel.create(chat);
