@@ -38,6 +38,10 @@ export class Room {
     default: false,
   })
   private: boolean;
+  @Prop({
+    default: true,
+  })
+  active: boolean;
 }
 
 export const RoomSchema = SchemaFactory.createForClass(Room);
