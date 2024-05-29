@@ -7,9 +7,20 @@ import { RedisModule } from '../cache/module';
 import { SecretsModule } from '../global/secrets/module';
 import { UserModule } from '../user/module';
 import { ChatModule } from '../chat/module';
+import { SubscriptionModule } from '../subcription/module';
+import { PlanModule } from '../plan/module';
 
 @Module({
-  imports: [DatabaseModule, UserModule, TokenModule, RedisModule, SecretsModule, ChatModule],
+  imports: [
+    DatabaseModule,
+    UserModule,
+    TokenModule,
+    RedisModule,
+    SecretsModule,
+    ChatModule,
+    SubscriptionModule,
+    PlanModule,
+  ],
   controllers: [RoomController],
   providers: [...roomProviders],
   exports: [...roomProviders],
