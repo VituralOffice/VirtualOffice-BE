@@ -115,17 +115,22 @@ export class VOffice extends Room<OfficeState> {
             chatId: chatDoc.id,
             title: chat.name,
           });
-          console.log('send new group chat', chat.name);
+          console.log('send new group chaat', chat.name);
         } else {
           const chatId = meeting.chatId;
           if (chatId === '') return;
           const chat = await this.chatService.findById(chatId);
           if (!chat) return;
-          const newMember = new ChatMember();
-          newMember.user = message.userId;
-          newMember.role = `user`;
-          chat.members.push(newMember);
-          await chat.save();
+          const member = chat.members.find((m) => m.user === message.userId);
+          if (member) {
+            //TODO: remove leaveAt prop
+          } else {
+            const newMember = new ChatMember();
+            newMember.user = message.userId;
+            newMember.role = `user`;
+            chat.members.push(newMember);
+            await chat.save();
+          }
           client.send(Message.CONNECT_TO_MEETING, { meetingId: message.meetingId, chatId: chat.id, title: chat.name });
           console.log('send exists group chat', chat.name);
         }
@@ -262,20 +267,20 @@ export class VOffice extends Room<OfficeState> {
       const mapChatMessages: IMapMessage[] = [];
       await Promise.all(
         chats.map(async (c) => {
-          if (this.state.mapMessages.get(c.id)) mapChatMessages.push(this.state.mapMessages.get(c.id));
-          else {
-            // batch load message when data not in mapMessage (room state)
-            const chatMessages = await this.chatService.batchLoadChatMessages({
-              chat: c.id,
-              limit: 100,
-            });
-            const chatMessageSchemas = convertToChatMessageSchema(chatMessages.reverse());
-            const mapMessage = new MapMessage();
-            mapMessage.id = c.id;
-            mapMessage.messages = chatMessageSchemas;
-            this.state.mapMessages.set(c.id, mapMessage);
-            mapChatMessages.push(this.state.mapMessages.get(c.id));
-          }
+          // if (this.state.mapMessages.get(c.id)) mapChatMessages.push(this.state.mapMessages.get(c.id));
+          // else {
+          // batch load message when data not in mapMessage (room state)
+          const chatMessages = await this.chatService.batchLoadChatMessages({
+            chat: c.id,
+            limit: 100,
+          });
+          const chatMessageSchemas = convertToChatMessageSchema(chatMessages.reverse());
+          const mapMessage = new MapMessage();
+          mapMessage.id = c.id;
+          mapMessage.messages = chatMessageSchemas;
+          // this.state.mapMessages.set(c.id, mapMessage);
+          mapChatMessages.push(mapMessage);
+          // }
         }),
       );
       client.send(Message.LOAD_CHAT, { mapChatMessages });
@@ -299,10 +304,10 @@ export class VOffice extends Room<OfficeState> {
         });
         chatMessage = await this.chatService.addChatMessage(chatMessage);
         chatMessage.user = player;
-        this.dispatcher.dispatch(new ChatMessageUpdateCommand(), {
-          client,
-          message: chatMessage,
-        });
+        // this.dispatcher.dispatch(new ChatMessageUpdateCommand(), {
+        //   client,
+        //   message: chatMessage,
+        // });
         // broadcast to all currently connected clients except the sender (to render in-game dialog on top of the character)
         chat.members.forEach((m) => {
           this.clients
@@ -317,7 +322,7 @@ export class VOffice extends Room<OfficeState> {
   }
 
   async onAuth(client: Client, options: { token: string | null }) {
-    if (!options.token) throw new ServerError(403, 'Forbidden, must be authenticated');
+    if (!options.token) throw new ServerError(403, 'Forbidden, must be authenticateed');
     const payload = verifyJwt(options.token, this.secretService.jwt.accessSecret);
     if (!payload) throw new ServerError(401, 'Unauthorized');
     const user = await this.userService.findById(payload.userId);
@@ -378,7 +383,7 @@ export class VOffice extends Room<OfficeState> {
  *
  * @description inject dependencies to any class not initialized by nestjs
  */
-export function injectDeps<T extends { new (...args: any[]): Room }>(app: INestApplication, target: T): T {
+export function injectDeps<T extends { new(...args: any[]): Room }>(app: INestApplication, target: T): T {
   const selfDeps = Reflect.getMetadata('self:paramtypes', target) || [];
   const dependencies = Reflect.getMetadata('design:paramtypes', target) || [];
 
