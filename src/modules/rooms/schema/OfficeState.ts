@@ -37,6 +37,8 @@ export class Meeting extends Schema implements IMeeting {
   @type('boolean') isOpen = false;
   @type('string') title = '';
   @type('string') chatId = '';
+  @type('boolean') isLocked = false;
+  @type('string') adminUser = '';
 }
 
 export class Chair extends Schema implements IChair {

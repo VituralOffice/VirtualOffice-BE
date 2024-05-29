@@ -20,6 +20,8 @@ export interface IMeeting extends Schema {
   isOpen: boolean;
   title: string;
   chatId: string;
+  adminUser: string;
+  isLocked: boolean;
 }
 
 export interface IChair extends Schema {
