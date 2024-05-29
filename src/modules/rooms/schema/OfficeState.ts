@@ -35,6 +35,8 @@ export class Player extends Schema implements IPlayer {
 export class Meeting extends Schema implements IMeeting {
   @type({ set: 'string' }) connectedUser = new SetSchema<string>();
   @type('boolean') isOpen = false;
+  @type('string') title = '';
+  @type('string') chatId = '';
   @type('boolean') isLocked = false;
   @type('string') adminUser = '';
 }
@@ -89,8 +91,8 @@ export class OfficeState extends Schema implements IOfficeState {
   @type({ map: Whiteboard })
   whiteboards = new MapSchema<Whiteboard>();
 
-  @type({ map: MapMessage })
-  mapMessages = new MapSchema<MapMessage>();
+  // @type({ map: MapMessage })
+  // mapMessages = new MapSchema<MapMessage>();
   @type({ map: 'string' })
   mapClients = new MapSchema<string>();
 }

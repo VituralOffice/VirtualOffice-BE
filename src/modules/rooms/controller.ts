@@ -197,6 +197,15 @@ export class RoomController {
       message: `Success`,
     };
   }
+  @Get(':roomId/chats/:chatId')
+  @UseGuards(NotFoundRoomGuard)
+  async getChatById(@Param('roomId') roomId: string, @Param('chatId') chatId: string, @User() user: UserEntity) {
+    const chat = await this.chatService.getOne(user, roomId, chatId);
+    return {
+      result: chat,
+      message: `Success`,
+    };
+  }
   @UseGuards(NotFoundRoomGuard, NotFoundChatGuard)
   @Post(':roomId/chats/:chatId/members')
   async addMember(@Body() body: AddMemberChatDto, @Param('chatId') chatId: string, @User() user: UserEntity) {

@@ -18,6 +18,8 @@ export interface IPlayer extends UserEntity, Schema {
 export interface IMeeting extends Schema {
   connectedUser: SetSchema<string>;
   isOpen: boolean;
+  title: string;
+  chatId: string;
   adminUser: string;
   isLocked: boolean;
 }
@@ -45,5 +47,5 @@ export interface IOfficeState extends Schema {
   meetings: MapSchema<IMeeting>;
   chairs: MapSchema<IChair>;
   whiteboards: MapSchema<IWhiteboard>;
-  mapMessages: MapSchema<IMapMessage>;
+  // mapMessages: MapSchema<IMapMessage>;
 }
