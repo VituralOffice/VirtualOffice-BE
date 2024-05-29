@@ -89,8 +89,8 @@ export class OfficeState extends Schema implements IOfficeState {
   @type({ map: Whiteboard })
   whiteboards = new MapSchema<Whiteboard>();
 
-  @type({ map: MapMessage })
-  mapMessages = new MapSchema<MapMessage>();
+  // @type({ map: MapMessage })
+  // mapMessages = new MapSchema<MapMessage>();
   @type({ map: 'string' })
   mapClients = new MapSchema<string>();
 }
