@@ -14,7 +14,10 @@ import {
 import { Message } from '../../types/Messages';
 import { IRoomData } from '../../types/Rooms';
 import { whiteboardRoomIds } from './schema/OfficeState';
-import PlayerUpdateCommand, { PlayerUpdateCharacterIdCommand, PlayerUpdateMeetingStatusCommand } from './commands/PlayerUpdateCommand';
+import PlayerUpdateCommand, {
+  PlayerUpdateCharacterIdCommand,
+  PlayerUpdateMeetingStatusCommand,
+} from './commands/PlayerUpdateCommand';
 import PlayerUpdateNameCommand from './commands/PlayerUpdateNameCommand';
 import { WhiteboardAddUserCommand, WhiteboardRemoveUserCommand } from './commands/WhiteboardUpdateArrayCommand';
 import ChatMessageUpdateCommand from './commands/ChatMessageUpdateCommand';
@@ -28,7 +31,12 @@ import { ChatService } from '../chat/service';
 import { QueryChatDto } from '../chat/dto';
 import { IChatMessage, IMapMessage } from 'src/types/IOfficeState';
 import { ChatMessageDocument } from '../chat/schema/chatMessage';
-import { MeetingAddUserCommand, MeetingRemoveUserCommand } from './commands/MeetingUpdateArrayCommand';
+import {
+  MeetingAddUserCommand,
+  MeetingLockCommand,
+  MeetingRemoveUserCommand,
+  MeetingUnLockCommand,
+} from './commands/MeetingUpdateArrayCommand';
 import { ChairRemoveUserCommand, ChairSetUserCommand } from './commands/ChairUpdateCommand';
 
 @Injectable()
@@ -81,8 +89,20 @@ export class VOffice extends Room<OfficeState> {
         client,
         meetingId: message.meetingId,
       });
+      client.send(Message.MEETING_RECEIVE, this.state.meetings.get(message.meetingId));
     });
-
+    this.onMessage(Message.MEETING_LOCK, (client, message: { meetingId: string }) => {
+      this.dispatcher.dispatch(new MeetingLockCommand(), {
+        client,
+        meetingId: message.meetingId,
+      });
+    });
+    this.onMessage(Message.MEETING_UNLOCK, (client, message: { meetingId: string }) => {
+      this.dispatcher.dispatch(new MeetingUnLockCommand(), {
+        client,
+        meetingId: message.meetingId,
+      });
+    });
     // when a player disconnect from a meeting, remove from the meeting connectedUser array
     this.onMessage(Message.DISCONNECT_FROM_MEETING, (client, message: { meetingId: string }) => {
       this.dispatcher.dispatch(new MeetingRemoveUserCommand(), {
@@ -285,6 +305,13 @@ export class VOffice extends Room<OfficeState> {
     this.state.meetings.forEach((meeting) => {
       if (meeting.connectedUser.has(client.sessionId)) {
         meeting.connectedUser.delete(client.sessionId);
+        // check if admin leave, give authority to second user join
+        if (client.sessionId === meeting.adminUser && meeting.connectedUser.size > 0)
+          meeting.adminUser = meeting.connectedUser.values[0];
+        if (meeting.connectedUser.size == 0) {
+          meeting.isOpen = false;
+          meeting.adminUser = '';
+        }
       }
     });
     this.state.whiteboards.forEach((whiteboard) => {
