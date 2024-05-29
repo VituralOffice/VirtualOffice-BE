@@ -2,32 +2,40 @@ import { Command } from '@colyseus/command';
 import { Client } from 'colyseus';
 import { IOfficeState } from '../../../types/IOfficeState';
 
-type Payload = {
+type AddMemberPayload = {
   client: Client;
   meetingId: string;
+  userId: string;
+  title?: string;
 };
 
-type MeetingChangeInfoPayload = {
+type RemoveMemberPayload = {
   client: Client;
   meetingId: string;
-  title: string;
-  chatId: string;
+  userId: string;
 };
 
-export class MeetingChangeInfoCommand extends Command<IOfficeState, MeetingChangeInfoPayload> {
-  execute(data: MeetingChangeInfoPayload) {
-    const { client, meetingId, title, chatId } = data;
-    const meeting = this.room.state.meetings.get(meetingId);
-    const clientId = client.sessionId;
+// type MeetingChangeInfoPayload = {
+//   client: Client;
+//   meetingId: string;
+//   title: string;
+//   chatId: string;
+// };
 
-    if (!meeting || meeting.connectedUser.has(clientId)) return;
-    meeting.title = title;
-    meeting.chatId = chatId;
-  }
-}
+// export class MeetingChangeInfoCommand extends Command<IOfficeState, MeetingChangeInfoPayload> {
+//   execute(data: MeetingChangeInfoPayload) {
+//     const { client, meetingId, title, chatId } = data;
+//     const meeting = this.room.state.meetings.get(meetingId);
+//     const clientId = client.sessionId;
 
-export class MeetingAddUserCommand extends Command<IOfficeState, Payload> {
-  execute(data: Payload) {
+//     if (!meeting || meeting.connectedUser.has(clientId)) return;
+//     meeting.title = title;
+//     meeting.chatId = chatId;
+//   }
+// }
+
+export class MeetingAddUserCommand extends Command<IOfficeState, AddMemberPayload> {
+  execute(data: AddMemberPayload) {
     const { client, meetingId } = data;
     const meeting = this.room.state.meetings.get(meetingId);
     const clientId = client.sessionId;
@@ -40,8 +48,8 @@ export class MeetingAddUserCommand extends Command<IOfficeState, Payload> {
   }
 }
 
-export class MeetingRemoveUserCommand extends Command<IOfficeState, Payload> {
-  execute(data: Payload) {
+export class MeetingRemoveUserCommand extends Command<IOfficeState, RemoveMemberPayload> {
+  execute(data: RemoveMemberPayload) {
     const { client, meetingId } = data;
     const meeting = this.state.meetings.get(meetingId);
 

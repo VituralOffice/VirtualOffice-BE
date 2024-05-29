@@ -31,12 +31,11 @@ import { ChatService } from '../chat/service';
 import { QueryChatDto } from '../chat/dto';
 import { IChatMessage, IMapMessage } from 'src/types/IOfficeState';
 import { ChatMessageDocument } from '../chat/schema/chatMessage';
-import {
-  MeetingAddUserCommand,
-  MeetingChangeInfoCommand,
-  MeetingRemoveUserCommand,
-} from './commands/MeetingUpdateArrayCommand';
+import { MeetingAddUserCommand, MeetingRemoveUserCommand } from './commands/MeetingUpdateArrayCommand';
 import { ChairRemoveUserCommand, ChairSetUserCommand } from './commands/ChairUpdateCommand';
+import { ChatEntity } from '../chat/entity/chat';
+import { ChatMember } from '../chat/schema/chatMember';
+import { CHAT_TYPE } from '../chat/constant';
 
 @Injectable()
 export class VOffice extends Room<OfficeState> {
@@ -83,31 +82,82 @@ export class VOffice extends Room<OfficeState> {
     });
 
     // when a player connect to a meeting, add to the meeting connectedUser array
-    this.onMessage(Message.CONNECT_TO_MEETING, (client, message: { meetingId: string }) => {
-      this.dispatcher.dispatch(new MeetingAddUserCommand(), {
-        client,
-        meetingId: message.meetingId,
-      });
-    });
-
-    // when a player connect to a meeting, add to the meeting connectedUser array
     this.onMessage(
-      Message.MEETING_CHANGE_INFO,
-      (client, message: { meetingId: string; title?: string; chatId?: string }) => {
-        this.dispatcher.dispatch(new MeetingChangeInfoCommand(), {
+      Message.CONNECT_TO_MEETING,
+      async (client, message: { roomId: string; meetingId: string; userId: string; title?: string }) => {
+        console.log('on CONNECT_TO_MEETING');
+        const meeting = this.state.meetings.get(message.meetingId);
+        const user = await this.userService.findById(message.userId);
+        if (!user) return;
+
+        if (meeting.connectedUser.size === 0) {
+          // if no one in meeeting, create new chat
+          const chat = new ChatEntity();
+          const members: ChatMember[] = [];
+          chat.name = message.title;
+          // creator member
+          const creatorMember = new ChatMember();
+          creatorMember.role = 'admin';
+          creatorMember.user = message.userId;
+          members.push(creatorMember);
+          chat.creator = message.userId;
+          chat.room = message.roomId;
+          chat.type = CHAT_TYPE.GROUP;
+          chat.members = members;
+          const chatDoc = await this.chatService.create(chat);
+
+          // set meeting info
+          meeting.chatId = chatDoc.id;
+          meeting.title = chat.name;
+
+          client.send(Message.CONNECT_TO_MEETING, {
+            meetingId: message.meetingId,
+            chatId: chatDoc.id,
+            title: chat.name,
+          });
+          console.log('send new group chat', chat.name);
+        } else {
+          const chatId = meeting.chatId;
+          if (chatId === '') return;
+          const chat = await this.chatService.findById(chatId);
+          if (!chat) return;
+          const newMember = new ChatMember();
+          newMember.user = message.userId;
+          newMember.role = `user`;
+          chat.members.push(newMember);
+          await chat.save();
+          client.send(Message.CONNECT_TO_MEETING, { meetingId: message.meetingId, chatId: chat.id, title: chat.name });
+          console.log('send exists group chat', chat.name);
+        }
+
+        this.dispatcher.dispatch(new MeetingAddUserCommand(), {
           client,
           meetingId: message.meetingId,
+          userId: message.userId,
           title: message.title,
-          chatId: message.chatId,
         });
       },
     );
 
+    // // when a player connect to a meeting, add to the meeting connectedUser array
+    // this.onMessage(
+    //   Message.MEETING_CHANGE_INFO,
+    //   (client, message: { meetingId: string; title?: string; chatId?: string }) => {
+    //     this.dispatcher.dispatch(new MeetingChangeInfoCommand(), {
+    //       client,
+    //       meetingId: message.meetingId,
+    //       title: message.title,
+    //       chatId: message.chatId,
+    //     });
+    //   },
+    // );
+
     // when a player disconnect from a meeting, remove from the meeting connectedUser array
-    this.onMessage(Message.DISCONNECT_FROM_MEETING, (client, message: { meetingId: string }) => {
+    this.onMessage(Message.DISCONNECT_FROM_MEETING, (client, message: { meetingId: string; userId: string }) => {
       this.dispatcher.dispatch(new MeetingRemoveUserCommand(), {
         client,
         meetingId: message.meetingId,
+        userId: message.userId,
       });
     });
 
