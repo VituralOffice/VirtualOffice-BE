@@ -193,8 +193,8 @@ export class RoomController {
   }
   @Get(':roomId/chats')
   @UseGuards(NotFoundRoomGuard)
-  async getChats(@Query() query: QueryChatDto, @Param('roomId') roomId: string, @User() user: UserEntity) {
-    const chats = await this.chatService.getAll(user, roomId, query);
+  async getAllUserChats(@Query() query: QueryChatDto, @Param('roomId') roomId: string, @User() user: UserEntity) {
+    const chats = await this.chatService.getAll(user, roomId, query || new QueryChatDto());
     return {
       result: chats,
       message: `Success`,
@@ -218,7 +218,7 @@ export class RoomController {
     });
     const chatMessageSchemas = convertToChatMessageSchema(chatMessages.reverse());
     const mapMessage = new MapMessage();
-    mapMessage.id = chatId;
+    mapMessage._id = chatId;
     mapMessage.messages = chatMessageSchemas;
     return {
       result: mapMessage,
@@ -227,7 +227,7 @@ export class RoomController {
   }
   @Get(':roomId/messages')
   @UseGuards(NotFoundRoomGuard)
-  async getMessagesByUserId(@Param('roomId') roomId: string, @User() user: UserEntity) {
+  async getUserChatsWithMessages(@Param('roomId') roomId: string, @User() user: UserEntity) {
     const chats = await this.chatService.getAll(user, roomId, new QueryChatDto());
     const mapChatMessages: IMapMessage[] = [];
     await Promise.all(
@@ -238,13 +238,16 @@ export class RoomController {
         });
         const chatMessageSchemas = convertToChatMessageSchema(chatMessages.reverse());
         const mapMessage = new MapMessage();
-        mapMessage.id = c.id;
+        mapMessage._id = c.id;
         mapMessage.messages = chatMessageSchemas;
         mapChatMessages.push(mapMessage);
       }),
     );
     return {
-      result: mapChatMessages,
+      result: {
+        chats,
+        mapMessages: mapChatMessages
+      },
       message: `Success`,
     };
   }

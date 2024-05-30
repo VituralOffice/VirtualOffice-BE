@@ -60,6 +60,8 @@ export class MeetingRemoveUserCommand extends Command<IOfficeState, RemoveMember
     const { client, meetingId } = data;
     const meeting = this.state.meetings.get(meetingId);
 
+    if (!meeting) return;
+
     if (meeting.connectedUser.has(client.sessionId)) {
       meeting.connectedUser.delete(client.sessionId);
       // give authority to second user joined to meeting
