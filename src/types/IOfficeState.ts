@@ -39,7 +39,7 @@ export interface IChatMessage extends Schema {
   reacts: React[];
 }
 export interface IMapMessage extends Schema {
-  id: string;
+  _id: string;
   messages: IChatMessage[];
 }
 export interface IOfficeState extends Schema {
