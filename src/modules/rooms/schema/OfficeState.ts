@@ -75,7 +75,7 @@ export class ChatMessage extends Schema implements IChatMessage {
   createdAt = '';
 }
 export class MapMessage extends Schema implements IMapMessage {
-  @type('string') id = '';
+  @type('string') _id = '';
   @type([ChatMessage]) messages = [];
 }
 export class OfficeState extends Schema implements IOfficeState {
