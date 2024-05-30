@@ -22,6 +22,9 @@ import { NotFoundChatGuard } from './guard/chat.guard';
 import { SubscriptionService } from '../subcription/service';
 import { PlanService } from '../plan/service';
 import { Plan } from '../plan/schema';
+import { IMapMessage } from 'src/types/IOfficeState';
+import { convertToChatMessageSchema } from './VOffice';
+import { MapMessage } from './schema/OfficeState';
 @ApiTags('rooms')
 @Controller({
   path: 'rooms',
@@ -203,6 +206,45 @@ export class RoomController {
     const chat = await this.chatService.getOne(user, roomId, chatId);
     return {
       result: chat,
+      message: `Success`,
+    };
+  }
+  @Get(':roomId/messages/:chatId')
+  @UseGuards(NotFoundRoomGuard)
+  async getMessagesByChatId(@Param('roomId') roomId: string, @Param('chatId') chatId: string, @User() user: UserEntity) {
+    const chatMessages = await this.chatService.batchLoadChatMessages({
+      chat: chatId,
+      limit: 100,
+    });
+    const chatMessageSchemas = convertToChatMessageSchema(chatMessages.reverse());
+    const mapMessage = new MapMessage();
+    mapMessage.id = chatId;
+    mapMessage.messages = chatMessageSchemas;
+    return {
+      result: mapMessage,
+      message: `Success`,
+    };
+  }
+  @Get(':roomId/messages')
+  @UseGuards(NotFoundRoomGuard)
+  async getMessagesByUserId(@Param('roomId') roomId: string, @User() user: UserEntity) {
+    const chats = await this.chatService.getAll(user, roomId, new QueryChatDto());
+    const mapChatMessages: IMapMessage[] = [];
+    await Promise.all(
+      chats.map(async (c) => {
+        const chatMessages = await this.chatService.batchLoadChatMessages({
+          chat: c.id,
+          limit: 100,
+        });
+        const chatMessageSchemas = convertToChatMessageSchema(chatMessages.reverse());
+        const mapMessage = new MapMessage();
+        mapMessage.id = c.id;
+        mapMessage.messages = chatMessageSchemas;
+        mapChatMessages.push(mapMessage);
+      }),
+    );
+    return {
+      result: mapChatMessages,
       message: `Success`,
     };
   }

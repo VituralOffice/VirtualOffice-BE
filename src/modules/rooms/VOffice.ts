@@ -136,6 +136,21 @@ export class VOffice extends Room<OfficeState> {
             chat.members.push(newMember);
             await chat.save();
           }
+
+          //send chat messages
+          const mapChatMessages: IMapMessage[] = [];
+          const chatMessages = await this.chatService.batchLoadChatMessages({
+            chat: chatId,
+            limit: 100,
+          });
+          const chatMessageSchemas = convertToChatMessageSchema(chatMessages.reverse());
+          const mapMessage = new MapMessage();
+          mapMessage.id = chatId;
+          mapMessage.messages = chatMessageSchemas;
+          mapChatMessages.push(mapMessage);
+
+          client.send(Message.UPDATE_ONE_CHAT, { mapChatMessages });
+
           client.send(Message.CONNECT_TO_MEETING, { meetingId: message.meetingId, chatId: chat.id, title: chat.name });
           console.log('send exists group chat', chat.name);
         }
