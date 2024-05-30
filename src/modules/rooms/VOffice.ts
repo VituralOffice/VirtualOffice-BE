@@ -137,20 +137,6 @@ export class VOffice extends Room<OfficeState> {
             await chat.save();
           }
 
-          //send chat messages
-          const mapChatMessages: IMapMessage[] = [];
-          const chatMessages = await this.chatService.batchLoadChatMessages({
-            chat: chatId,
-            limit: 100,
-          });
-          const chatMessageSchemas = convertToChatMessageSchema(chatMessages.reverse());
-          const mapMessage = new MapMessage();
-          mapMessage.id = chatId;
-          mapMessage.messages = chatMessageSchemas;
-          mapChatMessages.push(mapMessage);
-
-          client.send(Message.UPDATE_ONE_CHAT, { mapChatMessages });
-
           client.send(Message.CONNECT_TO_MEETING, { meetingId: message.meetingId, chatId: chat.id, title: chat.name });
           console.log('send exists group chat', chat.name);
         }
@@ -294,30 +280,30 @@ export class VOffice extends Room<OfficeState> {
       });
     });
 
-    this.onMessage(Message.LOAD_CHAT, async (client) => {
-      const player = this.state.players.get(client.sessionId);
-      const chats = await this.chatService.getAll(player, this.roomId, new QueryChatDto());
-      const mapChatMessages: IMapMessage[] = [];
-      await Promise.all(
-        chats.map(async (c) => {
-          // if (this.state.mapMessages.get(c.id)) mapChatMessages.push(this.state.mapMessages.get(c.id));
-          // else {
-          // batch load message when data not in mapMessage (room state)
-          const chatMessages = await this.chatService.batchLoadChatMessages({
-            chat: c.id,
-            limit: 100,
-          });
-          const chatMessageSchemas = convertToChatMessageSchema(chatMessages.reverse());
-          const mapMessage = new MapMessage();
-          mapMessage.id = c.id;
-          mapMessage.messages = chatMessageSchemas;
-          // this.state.mapMessages.set(c.id, mapMessage);
-          mapChatMessages.push(mapMessage);
-          // }
-        }),
-      );
-      client.send(Message.LOAD_CHAT, { mapChatMessages });
-    });
+    // this.onMessage(Message.LOAD_CHAT, async (client) => {
+    //   const player = this.state.players.get(client.sessionId);
+    //   const chats = await this.chatService.getAll(player, this.roomId, new QueryChatDto());
+    //   const mapChatMessages: IMapMessage[] = [];
+    //   await Promise.all(
+    //     chats.map(async (c) => {
+    //       // if (this.state.mapMessages.get(c.id)) mapChatMessages.push(this.state.mapMessages.get(c.id));
+    //       // else {
+    //       // batch load message when data not in mapMessage (room state)
+    //       const chatMessages = await this.chatService.batchLoadChatMessages({
+    //         chat: c.id,
+    //         limit: 100,
+    //       });
+    //       const chatMessageSchemas = convertToChatMessageSchema(chatMessages.reverse());
+    //       const mapMessage = new MapMessage();
+    //       mapMessage.id = c.id;
+    //       mapMessage.messages = chatMessageSchemas;
+    //       // this.state.mapMessages.set(c.id, mapMessage);
+    //       mapChatMessages.push(mapMessage);
+    //       // }
+    //     }),
+    //   );
+    //   client.send(Message.LOAD_CHAT, { mapChatMessages });
+    // });
     // when a player send a chat message, update the message array and broadcast to all connected clients except the sender
     this.onMessage(
       Message.ADD_CHAT_MESSAGE,
@@ -423,7 +409,7 @@ export class VOffice extends Room<OfficeState> {
  *
  * @description inject dependencies to any class not initialized by nestjs
  */
-export function injectDeps<T extends { new(...args: any[]): Room }>(app: INestApplication, target: T): T {
+export function injectDeps<T extends { new (...args: any[]): Room }>(app: INestApplication, target: T): T {
   const selfDeps = Reflect.getMetadata('self:paramtypes', target) || [];
   const dependencies = Reflect.getMetadata('design:paramtypes', target) || [];
 
