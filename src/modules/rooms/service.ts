@@ -4,7 +4,7 @@ import { Room, RoomDocument, RoomModel } from './schema/room';
 import { UserEntity } from '../user/entity';
 import { RoomEntity } from './entity/room';
 import { JoinRoomPayload, QueryRoomDto, SendJoinLinkPayload } from './dto';
-import mongoose, { FilterQuery } from 'mongoose';
+import mongoose, { FilterQuery, UpdateQuery } from 'mongoose';
 import { TokenService } from '../token/service';
 import { ApiException } from 'src/common';
 import { RoomMember } from './schema';
@@ -63,7 +63,7 @@ export class RoomService {
    * @description Find all room user has joined
    */
   async findAllJoinedRoom(user: UserEntity, query: QueryRoomDto) {
-    const param: FilterQuery<Room> = { members: { $elemMatch: { user: user.id } } };
+    const param: FilterQuery<Room> = { members: { $elemMatch: { user: user.id } }, active: true };
     if (query.name) param.name = { $regex: `${query.name}`, $options: 'i' };
     if (query.owned) param.creator = user.id;
     return this.roomModel.find(param).populate('map');
@@ -91,6 +91,35 @@ export class RoomService {
     await this.cacheService.set(key, room.id, { EX: JOIN_ROOM_LINK_TTL });
     const url = `${this.secretsService.APP_URL}/rooms/${room.id}/join?token=${token}`;
     return url;
+  }
+  async genTransferLink(room: RoomEntity) {
+    const token = randomHash();
+    const key = `room_transfer_${room.id}_${token}`;
+    await this.cacheService.set(key, room.id, { EX: JOIN_ROOM_LINK_TTL });
+    const url = `${this.secretsService.APP_URL}/rooms/${room.id}/ownership?token=${token}`;
+    return url;
+  }
+  async leaveRoom(room: RoomEntity, user: UserEntity) {
+    const updateQuery: UpdateQuery<Room> = {
+      $pull: {
+        members: [
+          {
+            user: user.id,
+          },
+        ],
+      },
+    };
+    if (room.creator.toString() === user.id.toString()) {
+      // if admin leave room change `active`: false,
+      //todo: notify to member that room no longer active
+      updateQuery['active'] = false;
+    }
+    await this.roomModel.updateOne(
+      {
+        _id: room.id,
+      },
+      updateQuery,
+    );
   }
   async checkValidJoinRoomToken(roomId: string, token: string) {
     const key = `room_${roomId}_${token}`;
