@@ -54,4 +54,10 @@ export abstract class ISecretsService {
     };
     from: string;
   };
+  redis: {
+    url: string;
+    host: string;
+    port: number;
+    password?: string;
+  };
 }

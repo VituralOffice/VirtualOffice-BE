@@ -1,4 +1,4 @@
-import { RedisClientType, SetOptions } from 'redis';
+import { RedisClientOptions, RedisClientType, SetOptions } from 'redis';
 
 import { CacheKeyArgument, CacheKeyValue, CacheValeuArgument } from './types';
 
@@ -6,6 +6,7 @@ export abstract class ICacheService<T = RedisClientType> {
   abstract client: T;
   abstract isConnected(): Promise<void>;
   abstract connect(): Promise<T>;
+  abstract getConfig(): RedisClientOptions;
   abstract set(key: CacheKeyArgument, value: CacheValeuArgument, config?: SetOptions): Promise<void>;
   abstract del(key: CacheKeyArgument): Promise<void>;
   abstract get(key: CacheKeyArgument): Promise<string>;
