@@ -43,6 +43,12 @@ export class InviteRoomDto {
   @IsString()
   email: string;
 }
+export class TransferRoomDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  email: string;
+}
 export type SendJoinLinkPayload = {
   email: string;
   inviterFullName: string;
