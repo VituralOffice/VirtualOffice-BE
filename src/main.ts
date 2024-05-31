@@ -11,7 +11,7 @@ import { HttpLoggerInterceptor } from './common/interceptors/logger/http-logger.
 import { TracingInterceptor } from './common/interceptors/logger/http-tracing.interceptor';
 import { MainModule } from './modules/module';
 import { APP_DESCRIPTION, APP_NAME, APP_VERSION } from './constant';
-import { Server, LobbyRoom } from 'colyseus';
+import { Server, LobbyRoom, RedisPresence } from 'colyseus';
 import { monitor } from '@colyseus/monitor';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import * as multer from 'multer';
@@ -22,6 +22,7 @@ import * as cookieParser from 'cookie-parser';
 import { RoomType } from './types/Rooms';
 import { VOffice, injectDeps } from './modules/rooms/VOffice';
 import { RedisIoAdapter } from './adapter';
+import { ICacheService } from './modules/cache/adapter';
 async function bootstrap() {
   const app = express();
 
@@ -30,6 +31,7 @@ async function bootstrap() {
   nest.useWebSocketAdapter(redisIoAdapter);
   const loggerService = nest.get(ILoggerService);
   const secretsService = nest.get(ISecretsService);
+  const cacheService = nest.get(ICacheService);
   const whitelist = secretsService.ORIGINS.split(',') || ['*'];
   const corsOptions = {
     origin: whitelist,
@@ -44,6 +46,7 @@ async function bootstrap() {
   const httpServer = http.createServer(app);
   const server = new Server({
     server: httpServer,
+    presence: new RedisPresence(cacheService.getConfig()),
   });
   // add multer middleware
   const upload = multer();
