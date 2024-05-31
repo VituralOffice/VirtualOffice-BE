@@ -9,8 +9,8 @@ import { RedisService } from './service';
   providers: [
     {
       provide: ICacheService,
-      useFactory: async ({ REDIS_URL }: ISecretsService, logger: ILoggerService) => {
-        const cacheService = new RedisService({ url: REDIS_URL }, logger);
+      useFactory: async ({ redis }: ISecretsService, logger: ILoggerService) => {
+        const cacheService = new RedisService(redis, logger);
         await cacheService.connect();
         return cacheService;
       },

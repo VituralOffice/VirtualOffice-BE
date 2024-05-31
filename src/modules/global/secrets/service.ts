@@ -23,6 +23,11 @@ export class SecretsService extends ConfigService implements ISecretsService {
   REDIS_URL = this.get('REDIS_URL');
   ENV = this.get('ENV');
   LOG_LEVEL = this.get<LevelWithSilent>('LOG_LEVEL');
+  redis = {
+    url: this.get(`REDIS_URL`),
+    host: this.get(`REDIS_HOST`),
+    port: parseInt(this.get(`REDIS_PORT`)),
+  };
   database = {
     host: this.get('MONGO_HOST'),
     port: this.get<number>('MONGO_PORT'),
