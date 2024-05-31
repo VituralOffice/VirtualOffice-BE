@@ -93,7 +93,7 @@ export class PaymentController {
   @Get('/subscriptions/:subscriptionId/success')
   async subscriptionCallbackSuccess(@Param('subscriptionId') subscriptionId: string, @Res() res: Response) {
     console.log(`this`);
-    const redirectUrl = `${this.secretsService.APP_URL}/subscription`;
+    const redirectUrl = `${this.secretsService.APP_URL}/user/settings`;
     const subscription = await this.subscriptionService.findById(subscriptionId);
     if (!subscription) return res.redirect(redirectUrl);
     const session = await this.paymentService.retrieveSession(subscription.stripeSessionId);
@@ -112,7 +112,7 @@ export class PaymentController {
   @Public()
   @Get('/subscriptions/:subscriptionId/cancel')
   async subscriptionCallbackCancel(@Param('subscriptionId') subscriptionId: string, @Res() res: Response) {
-    const redirectUrl = `${this.secretsService.APP_URL}/subscription`;
+    const redirectUrl = `${this.secretsService.APP_URL}/user/settings`;
     const subscription = await this.subscriptionService.findById(subscriptionId);
     if (!subscription) return res.redirect(redirectUrl);
     subscription.status = SUBSCRIPTION_STATUS.CANCELLED;
