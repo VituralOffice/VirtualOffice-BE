@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { RoomService } from './service';
-import { CreateRoomDto, InviteRoomDto, JoinRoomDto, QueryRoomDto } from './dto';
+import { CreateRoomDto, InviteRoomDto, JoinRoomDto, QueryRoomDto, TransferRoomDto } from './dto';
 import { User } from 'src/common/decorators/current-user.decorator';
 import { UserEntity } from '../user/entity';
 import { ApiException } from 'src/common';
@@ -140,6 +140,27 @@ export class RoomController {
       inviterFullName: inviter.fullname || inviter.email,
       roomName: room.name,
     });
+    return {
+      result: null,
+      message: `Success`,
+    };
+  }
+  @Post(':roomId/leave')
+  async leave(@Param('roomId') roomId: string, @User() user: UserEntity) {
+    const room = await this.roomService.findById(roomId);
+    if (!room) throw new ApiException(`room not found`, 404);
+    await this.roomService.leaveRoom(room, user);
+    return {
+      result: null,
+      message: `Success`,
+    };
+  }
+  @Post(':roomId/transfer')
+  async transferOwnership(@Param('roomId') roomId: string, @Body() body: TransferRoomDto, @User() user: UserEntity) {
+    const room = await this.roomService.findById(roomId);
+    if (!room) throw new ApiException(`room not found`, 404);
+    if (room.creator.toString() !== user.id.toString()) throw new ApiException(`Forbidden`, 403);
+    // todo!!!
     return {
       result: null,
       message: `Success`,
