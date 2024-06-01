@@ -21,6 +21,14 @@ export class CreateMapDto {
   totalChair: number;
   @ApiProperty()
   @IsNotEmpty()
+  @Transform(({ value }) => parseInt(value, 10))
+  totalWhiteboard: number;
+  @ApiProperty()
+  default: boolean;
+  @ApiProperty()
+  style: string;
+  @ApiProperty()
+  @IsNotEmpty()
   json: string;
 }
 export class UpdateMapDto {
@@ -35,6 +43,13 @@ export class UpdateMapDto {
   @ApiProperty()
   @Transform(({ value }) => parseInt(value, 10))
   totalChair?: number;
+  @ApiProperty()
+  @Transform(({ value }) => parseInt(value, 10))
+  totalWhiteboard?: number;
+  @ApiProperty()
+  default?: boolean;
+  @ApiProperty()
+  style?: string;
   @ApiProperty()
   json?: string;
 }
