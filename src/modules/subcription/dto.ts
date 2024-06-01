@@ -27,11 +27,12 @@ export class CreatePlanDto {
     description: `List features`,
   })
   @IsArray()
-  feaetures: string[];
+  features: string[];
 }
 export class QuerySubscriptionDto {
   @ApiProperty({
     description: `Subscription status`,
+    example: `status=pending,active,expired`,
   })
-  status?: SUBSCRIPTION_STATUS;
+  status?: string;
 }
