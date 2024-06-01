@@ -20,6 +20,8 @@ export class SecretsService extends ConfigService implements ISecretsService {
   STRIPE_PRIVATE_KEY = this.get('STRIPE_PRIVATE_KEY');
   STRIPE_SUCCESS_CALLBACK = this.get('STRIPE_SUCCESS_CALLBACK');
   STRIPE_CANCEL_CALLBACK = this.get('STRIPE_SUCCESS_CALLBACK');
+  STRIPE_WEBHOOK_SECRET = this.get(`STRIPE_WEBHOOK_SECRET`);
+  STRIPE_CUSTOMER_PORTAL = this.get(`STRIPE_CUSTOMER_PORTAL`);
   REDIS_URL = this.get('REDIS_URL');
   ENV = this.get('ENV');
   LOG_LEVEL = this.get<LevelWithSilent>('LOG_LEVEL');

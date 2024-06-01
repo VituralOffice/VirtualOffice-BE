@@ -38,10 +38,12 @@ async function bootstrap() {
     credentials: true,
   };
   const corsMiddleware = cors(corsOptions);
-  app.use(cookieParser());
-  app.use(express.json());
   app.use(corsMiddleware);
   app.options('*', corsMiddleware);
+  //stripe webhook
+  app.use('/v1/payments/stripe_webhook', express.raw({ type: 'application/json' }));
+  app.use(cookieParser());
+  app.use(express.json());
   app.use('/colyseus', monitor());
   const httpServer = http.createServer(app);
   const server = new Server({

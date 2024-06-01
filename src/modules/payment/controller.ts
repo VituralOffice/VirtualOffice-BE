@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Param, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, RawBodyRequest, Req, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PaymentService } from './service';
-import { BILLING_CYCLE, CreateCheckoutDto, RetryCheckoutDto } from './dto';
+import { BILLING_CYCLE, CancelDto, CreateCheckoutDto, RetryCheckoutDto } from './dto';
 import { PlanService } from '../plan/service';
 import { ApiException } from 'src/common';
 import { User } from 'src/common/decorators/current-user.decorator';
@@ -10,7 +10,7 @@ import { SubscriptionService } from '../subcription/service';
 import { addDateUnit } from 'src/common/helpers/common';
 import { PAYMENT_STATUS, SUBSCRIPTION_STATUS } from '../subcription/constant';
 import { ISecretsService } from '../global/secrets/adapter';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { Public } from 'src/common/decorators/public.decorator';
 
 @ApiTags('payments')
@@ -24,6 +24,59 @@ export class PaymentController {
     private readonly subscriptionService: SubscriptionService,
     private readonly secretsService: ISecretsService,
   ) {}
+  @Get('stripe_customer_portal')
+  getCustomerPortal() {
+    return {
+      result: this.secretsService.STRIPE_CUSTOMER_PORTAL,
+      message: `Success`,
+    };
+  }
+  @Public()
+  @Post('stripe_webhook')
+  async stripeWebhook(@Req() req: RawBodyRequest<Request>, @Res() res: Response) {
+    const sig = req.headers['stripe-signature'] as string;
+    try {
+      const event = await this.paymentService.constructEvent(req.body, sig);
+      switch (event.type) {
+        case 'checkout.session.completed':
+          await this.paymentService.handleCheckoutSessionCompleted(event.data.object);
+          break;
+        case 'invoice.payment_succeeded':
+          await this.paymentService.handleInvoicePaymentSucceeded(event.data.object);
+          break;
+        case `invoice.upcoming`:
+          await this.paymentService.handleInvoiceUpcoming(event.data.object);
+          break;
+        case `invoice.payment_action_required`:
+          await this.paymentService.handleInvoicePaymentActionRequire(event.data.object);
+          break;
+        case `invoice.payment_failed`:
+          await this.paymentService.handleInvoiceUpcoming(event.data.object);
+          break;
+        case 'customer.subscription.created':
+          await this.paymentService.handleSubscriptionCreated(event.data.object);
+          break;
+        case 'customer.subscription.updated':
+          await this.paymentService.handleSubscriptionUpdated(event.data.object);
+          break;
+        case 'customer.subscription.deleted':
+          await this.paymentService.handleSubscriptionDeleted(event.data.object);
+          break;
+        case 'customer.subscription.paused':
+          await this.paymentService.handleSubscriptionPaused(event.data.object);
+          break;
+        case 'customer.subscription.resumed':
+          await this.paymentService.handleSubscriptionResumed(event.data.object);
+          break;
+        default:
+          console.log(`Unhandled event type ${event.type}`);
+      }
+      // Return a 200 response to acknowledge receipt of the event
+      return res.status(200).send();
+    } catch (err) {
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+  }
   @Post('checkout')
   async createCheckoutSession(@Body() body: CreateCheckoutDto, @User() user: UserEntity) {
     const plan = await this.planService.findById(body.planId);
@@ -57,7 +110,7 @@ export class PaymentController {
       stripePriceId: priceId,
     });
     const session = await this.paymentService.createCheckoutSession(user, priceId, subscription.id);
-    // save stripe session id for payment callback
+    // save stripe session id for webhook event
     subscription.stripeSessionId = session.id;
     await subscription.save();
     return {
@@ -70,7 +123,7 @@ export class PaymentController {
   }
   @Post('checkout_retry')
   async retryCheckout(@Body() body: RetryCheckoutDto, @User() user: UserEntity) {
-    const subscription = await this.subscriptionService.findById(body.subscriptionId);
+    const subscription = await this.subscriptionService.findUserSubscription(body.subscriptionId, user);
     if (!subscription) throw new ApiException(`subscription not found`, 400);
     if (subscription.status === SUBSCRIPTION_STATUS.ACTIVE)
       throw new ApiException(`subscription has already checkout`, 400);
@@ -89,36 +142,17 @@ export class PaymentController {
       message: `Success`,
     };
   }
-  @Public()
-  @Get('/subscriptions/:subscriptionId/success')
-  async subscriptionCallbackSuccess(@Param('subscriptionId') subscriptionId: string, @Res() res: Response) {
-    console.log(`this`);
-    const redirectUrl = `${this.secretsService.APP_URL}/user/settings`;
-    const subscription = await this.subscriptionService.findById(subscriptionId);
-    if (!subscription) return res.redirect(redirectUrl);
-    const session = await this.paymentService.retrieveSession(subscription.stripeSessionId);
-    console.log({
-      session,
-    });
-    if (!session) return res.redirect(redirectUrl);
-    if (session.status === 'complete') {
-      subscription.status = SUBSCRIPTION_STATUS.ACTIVE;
-      subscription.paymentStatus = PAYMENT_STATUS.PAID;
-      subscription.stripeSubscriptionId = session.subscription.toString();
-      await subscription.save();
-    }
-    return res.redirect(redirectUrl);
-  }
-  @Public()
-  @Get('/subscriptions/:subscriptionId/cancel')
-  async subscriptionCallbackCancel(@Param('subscriptionId') subscriptionId: string, @Res() res: Response) {
-    const redirectUrl = `${this.secretsService.APP_URL}/user/settings`;
-    const subscription = await this.subscriptionService.findById(subscriptionId);
-    if (!subscription) return res.redirect(redirectUrl);
+  @Post('cancel')
+  async cancel(@Body() body: CancelDto, @User() user: UserEntity) {
+    const subscription = await this.subscriptionService.findUserSubscription(body.subscriptionId, user);
+    if (!subscription) throw new ApiException(`subscription not found`, 400);
     subscription.status = SUBSCRIPTION_STATUS.CANCELLED;
-    subscription.paymentStatus = PAYMENT_STATUS.FAILED;
-    subscription.stripeSubscriptionId = '';
     await subscription.save();
-    return res.redirect(redirectUrl);
+    //todo: inactive rooms
+    await this.paymentService.cancelStripeSubscription(subscription.stripeSubscriptionId);
+    return {
+      result: null,
+      message: `Success`,
+    };
   }
 }

@@ -12,6 +12,8 @@ export abstract class ISecretsService {
   STRIPE_PRIVATE_KEY: string;
   STRIPE_SUCCESS_CALLBACK: string;
   STRIPE_CANCEL_CALLBACK: string;
+  STRIPE_WEBHOOK_SECRET: string;
+  STRIPE_CUSTOMER_PORTAL: string;
   database: {
     host: string;
     port: number;
