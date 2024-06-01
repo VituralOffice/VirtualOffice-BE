@@ -12,7 +12,6 @@ import { UserService } from '../user/service';
 import { AddMemberChatDto, CreateChatDto, QueryChatDto } from '../chat/dto';
 import { ChatService } from '../chat/service';
 import { CHAT_TYPE } from '../chat/constant';
-import { ChatDocument } from '../chat/schema/chat';
 
 import { genChatName } from './helper';
 import { ChatEntity } from '../chat/entity/chat';
@@ -232,7 +231,11 @@ export class RoomController {
   }
   @Get(':roomId/messages/:chatId')
   @UseGuards(NotFoundRoomGuard)
-  async getMessagesByChatId(@Param('roomId') roomId: string, @Param('chatId') chatId: string, @User() user: UserEntity) {
+  async getMessagesByChatId(
+    @Param('roomId') roomId: string,
+    @Param('chatId') chatId: string,
+    @User() user: UserEntity,
+  ) {
     const chatMessages = await this.chatService.batchLoadChatMessages({
       chat: chatId,
       limit: 100,
@@ -267,7 +270,7 @@ export class RoomController {
     return {
       result: {
         chats,
-        mapMessages: mapChatMessages
+        mapMessages: mapChatMessages,
       },
       message: `Success`,
     };
