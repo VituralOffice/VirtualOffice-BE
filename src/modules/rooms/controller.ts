@@ -12,7 +12,6 @@ import { UserService } from '../user/service';
 import { AddMemberChatDto, CreateChatDto, QueryChatDto } from '../chat/dto';
 import { ChatService } from '../chat/service';
 import { CHAT_TYPE } from '../chat/constant';
-
 import { genChatName } from './helper';
 import { ChatEntity } from '../chat/entity/chat';
 import { ChatMember } from '../chat/schema/chatMember';

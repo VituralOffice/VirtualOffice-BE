@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Model, Types } from 'mongoose';
 import { PAYMENT_STATUS, SUBSCRIPTION_STATUS } from './constant';
 import { Plan } from '../plan/schema';
+import { User } from '../user/schema';
 
 export type SubscriptionDocument = Subscription & Document;
 
@@ -23,7 +24,7 @@ export class Subscription {
     ref: 'User',
     type: Types.ObjectId,
   })
-  user: string;
+  user: string | User;
   @Prop({
     default: false,
   })
