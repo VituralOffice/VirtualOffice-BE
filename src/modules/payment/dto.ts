@@ -27,3 +27,11 @@ export class RetryCheckoutDto {
   @IsString()
   subscriptionId: string;
 }
+export class CancelDto {
+  @ApiProperty({
+    nullable: false,
+  })
+  @IsNotEmpty()
+  @IsString()
+  subscriptionId: string;
+}

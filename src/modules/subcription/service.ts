@@ -51,7 +51,7 @@ export class SubscriptionService {
       user: user.id,
       freePlan: false,
     };
-    if (query.status) param.status = query.status;
+    if (query.status) param.status = { $in: query.status.split(',') };
     return this.subscriptionModel.find(param).populate('plan');
   }
   async findActivePlan(planId: string) {
@@ -66,6 +66,12 @@ export class SubscriptionService {
   }
   async findById(id: string) {
     return this.subscriptionModel.findById(id);
+  }
+  async findBySessionId(sessionId: string) {
+    return this.subscriptionModel.findOne({ stripeSessionId: sessionId });
+  }
+  async findBySubscriptionId(subscriptionId: string) {
+    return this.subscriptionModel.findOne({ stripeSubscriptionId: subscriptionId });
   }
   async create(doc: Partial<SubscriptionDocument>) {
     const subscription = new this.subscriptionModel(doc);
@@ -86,5 +92,11 @@ export class SubscriptionService {
     doc.user = user.id;
     const subscription = new this.subscriptionModel(doc);
     return subscription.save();
+  }
+  async findUserSubscription(subscriptionId: string, user: UserEntity) {
+    return this.subscriptionModel.findOne({
+      user: user.id,
+      _id: subscriptionId,
+    });
   }
 }
