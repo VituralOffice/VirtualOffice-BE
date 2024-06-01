@@ -29,6 +29,16 @@ export class Map {
   totalMeeting: number;
   @Prop()
   totalChair: number;
+  @Prop()
+  totalWhiteboard: number;
+  @Prop({
+    default: false,
+  })
+  default: boolean;
+  @Prop({
+    default: '',
+  })
+  style: string;
   @Prop({
     default: true,
   })
