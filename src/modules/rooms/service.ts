@@ -81,6 +81,7 @@ export class RoomService {
   async joinRoom(room: RoomDocument, user: UserEntity) {
     const newMember = new RoomMember();
     newMember.user = user.id;
+    newMember.online = true;
     newMember.role = ROLE.USER;
     room.members.push(newMember);
     await room.save();
@@ -145,6 +146,18 @@ export class RoomService {
       updatePayload['members.$.online'] = payload.online;
     }
     return this.roomModel.updateOne({ _id: roomId, 'members.user': userId }, { $set: updatePayload });
+  }
+  async removeMember(roomId: string, userId: string) {
+    const updateQuery: UpdateQuery<Room> = {
+      $pull: {
+        members: [
+          {
+            user: userId,
+          },
+        ],
+      },
+    };
+    return this.roomModel.updateOne({ _id: roomId }, updateQuery);
   }
   async countRoom(user: UserEntity) {
     return this.roomModel.countDocuments({

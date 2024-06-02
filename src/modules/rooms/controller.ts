@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { RoomService } from './service';
-import { CreateRoomDto, InviteRoomDto, JoinRoomDto, QueryRoomDto, TransferRoomDto } from './dto';
+import { CreateRoomDto, InviteRoomDto, JoinRoomDto, QueryRoomDto, RemoveMemberDto, TransferRoomDto } from './dto';
 import { User } from 'src/common/decorators/current-user.decorator';
 import { UserEntity } from '../user/entity';
 import { ApiException } from 'src/common';
@@ -50,10 +50,6 @@ export class RoomController {
     // check room limit
     const totalRoom = await this.roomService.countRoom(user);
     await activeSubscription.populate(`plan`);
-    console.log({
-      totalRoom,
-      activeSubscription,
-    });
     if (totalRoom >= (activeSubscription.plan as Plan).maxRoom)
       throw new ApiException(`Reach limit room on plan, please subscribe for new plan`, 400);
     const roomDoc = new RoomEntity();
@@ -61,6 +57,7 @@ export class RoomController {
     member.user = user.id;
     member.role = ROLE.ADMIN;
     roomDoc.name = body.name;
+    roomDoc.plan = body.plan;
     roomDoc.private = body.private;
     roomDoc.map = body.map;
     roomDoc.creator = user.id;
@@ -151,6 +148,17 @@ export class RoomController {
     const room = await this.roomService.findById(roomId);
     if (!room) throw new ApiException(`room not found`, 404);
     await this.roomService.leaveRoom(room, user);
+    return {
+      result: null,
+      message: `Success`,
+    };
+  }
+  @Post(':roomId/remove')
+  async remove(@Param('roomId') roomId: string, @Body() body: RemoveMemberDto, @User() user: UserEntity) {
+    const room = await this.roomService.findById(roomId);
+    if (!room) throw new ApiException(`room not found`, 404);
+    if (room.creator.toString() !== user.id.toString()) throw new ApiException(`forbidden`, 403);
+    await this.roomService.removeMember(roomId, user.id);
     return {
       result: null,
       message: `Success`,

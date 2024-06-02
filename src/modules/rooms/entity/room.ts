@@ -24,4 +24,6 @@ export class RoomEntity extends Room {
 
   @ApiProperty()
   members: RoomMember[];
+  @ApiProperty()
+  plan: string;
 }
