@@ -49,9 +49,9 @@ export class SubscriptionService {
   async findAllBelongToUser(user: UserEntity, query: QuerySubscriptionDto) {
     const param: FilterQuery<Subscription> = {
       user: user.id,
-      freePlan: false,
     };
     if (query.status) param.status = { $in: query.status.split(',') };
+    if (query.freePlan !== undefined) param.freePlan = query.freePlan;
     return this.subscriptionModel.find(param).populate('plan');
   }
   async findActivePlan(planId: string) {

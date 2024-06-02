@@ -35,4 +35,6 @@ export class QuerySubscriptionDto {
     example: `status=pending,active,expired`,
   })
   status?: string;
+  @ApiProperty()
+  freePlan?: boolean;
 }
