@@ -341,7 +341,7 @@ export class VOffice extends Room<OfficeState> {
   }
 
   async onAuth(client: Client, options: { token: string | null }) {
-    if (!options.token) throw new ServerError(403, 'Forbidden, must be authenticateed');
+    if (!options.token) throw new ServerError(401, 'Unauthorized');
     const payload = verifyJwt(options.token, this.secretService.jwt.accessSecret);
     if (!payload) throw new ServerError(401, 'Unauthorized');
     const user = await this.userService.findById(payload.userId);
@@ -353,8 +353,15 @@ export class VOffice extends Room<OfficeState> {
     const player = newPlayer(auth);
     this.state.players.set(client.sessionId, player);
     this.state.mapClients.set(player.id, client.sessionId);
-    await this.roomService.updateRoomMember(this.roomId, auth.id, { online: true });
     const room = await this.roomService.findById(this.roomId);
+    console.log({ auth, id: auth.id });
+    if (room.private && !room.members.find((m) => m.user.toString() === auth.id.toString())) return;
+    if (!room.private && !room.members.find((m) => m.user.toString() === auth.id.toString())) {
+      // add user to members
+      await this.roomService.joinRoom(room, auth);
+    }
+    await this.roomService.updateRoomMember(this.roomId, auth.id, { online: true });
+    // check user is member of this room
     await room.populate(['map', 'members.user']);
     client.send(Message.SEND_ROOM_DATA, {
       id: this.roomId,
@@ -369,13 +376,11 @@ export class VOffice extends Room<OfficeState> {
       this.state.mapClients.delete(player.id);
       this.roomService.updateRoomMember(this.roomId, player.id, { online: false });
     }
-
     this.state.chairs.forEach((chair) => {
       if (chair.connectedUser == client.sessionId) {
         chair.connectedUser = '';
       }
     });
-
     this.state.meetings.forEach((meeting) => {
       if (meeting.connectedUser.has(client.sessionId)) {
         meeting.connectedUser.delete(client.sessionId);

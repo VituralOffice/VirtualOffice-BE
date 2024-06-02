@@ -1,7 +1,10 @@
 # dependencies
 node_modules
-
-# git, vs config
+dist
+Dockerfile
+README.md
+*.log
 .vscode
 .gitignore
 .git
+.github
