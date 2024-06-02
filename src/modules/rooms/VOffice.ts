@@ -354,7 +354,6 @@ export class VOffice extends Room<OfficeState> {
     this.state.players.set(client.sessionId, player);
     this.state.mapClients.set(player.id, client.sessionId);
     const room = await this.roomService.findById(this.roomId);
-    console.log({ auth, id: auth.id });
     if (room.private && !room.members.find((m) => m.user.toString() === auth.id.toString())) return;
     if (!room.private && !room.members.find((m) => m.user.toString() === auth.id.toString())) {
       // add user to members
@@ -362,10 +361,10 @@ export class VOffice extends Room<OfficeState> {
     }
     await this.roomService.updateRoomMember(this.roomId, auth.id, { online: true });
     // check user is member of this room
-    await room.populate(['map', 'members.user']);
+    const updatedRoomData = await this.roomService.findByIdPopulate(this.roomId, ['map', 'members.user']);
     client.send(Message.SEND_ROOM_DATA, {
       id: this.roomId,
-      ...room.toJSON(),
+      ...updatedRoomData.toJSON(),
     });
   }
 
