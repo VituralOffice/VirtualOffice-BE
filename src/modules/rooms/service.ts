@@ -74,6 +74,9 @@ export class RoomService {
   async findById(id: string | mongoose.Types.ObjectId) {
     return this.roomModel.findById(id);
   }
+  async findByIdPopulate(id: string | mongoose.Types.ObjectId, populates: string[] = []) {
+    return this.roomModel.findById(id).populate(populates);
+  }
   async checkUserInRoom(user: UserEntity, room: RoomEntity) {
     const existRoom = await this.roomModel.findOne({ members: { $elemMatch: { user: user.id } }, _id: room.id });
     return !!existRoom;

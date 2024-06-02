@@ -42,11 +42,6 @@ export class RoomController {
     if (existName) throw new ApiException(`room name exist`, 400);
     let activeSubscription = await this.subscriptionService.findActiveSubscription(user);
     // todo: optimize later
-    // subscribe for free plan
-    if (!activeSubscription) {
-      const freePlan = await this.planService.findOne({ free: true });
-      activeSubscription = await this.subscriptionService.subscribeFreePlan(user, freePlan);
-    }
     // check room limit
     const totalRoom = await this.roomService.countRoom(user);
     await activeSubscription.populate(`plan`);
