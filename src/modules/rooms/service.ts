@@ -66,6 +66,7 @@ export class RoomService {
     const param: FilterQuery<Room> = { members: { $elemMatch: { user: user.id } }, active: true };
     if (query.name) param.name = { $regex: `${query.name}`, $options: 'i' };
     if (query.owned) param.creator = user.id;
+    if (query.active !== undefined) param.active = query.active;
     return this.roomModel.find(param).populate('map');
   }
   async findByName(name: string) {

@@ -12,7 +12,7 @@ export class TokenEntity extends Token {
   token: string;
   @ApiProperty()
   @IsNotEmpty()
-  type: TOKEN_TYPE;
+  type: string;
   @ApiProperty()
   isBlacklist: boolean;
 }

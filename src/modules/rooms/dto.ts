@@ -27,6 +27,10 @@ export class QueryRoomDto {
     description: `Query room created by user`,
   })
   owned?: boolean;
+  @ApiProperty({
+    description: `Query room created by user`,
+  })
+  active?: boolean;
 }
 export class JoinRoomDto {
   @ApiProperty()
