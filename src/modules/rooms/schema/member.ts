@@ -38,7 +38,7 @@ export class RoomMember {
   @Prop({
     default: ROLE.USER,
   })
-  role: ROLE;
+  role: string;
 }
 
 export const RoomMemberSchema = SchemaFactory.createForClass(RoomMember);

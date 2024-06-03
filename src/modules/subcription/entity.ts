@@ -16,10 +16,10 @@ export class SubscriptionEntity extends Subscription {
   plan: string;
   @ApiProperty()
   @IsNotEmpty()
-  status: SUBSCRIPTION_STATUS;
+  status: string;
   @ApiProperty()
   @IsNotEmpty()
-  paymentStatus: PAYMENT_STATUS;
+  paymentStatus: string;
   @ApiProperty({
     type: Date,
   })

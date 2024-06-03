@@ -48,9 +48,9 @@ export class Subscription {
   })
   currency: string;
   @Prop({})
-  status: SUBSCRIPTION_STATUS;
+  status: string;
   @Prop({})
-  paymentStatus: PAYMENT_STATUS;
+  paymentStatus: string;
   @Prop({
     type: Date,
   })
