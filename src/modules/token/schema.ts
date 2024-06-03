@@ -20,7 +20,7 @@ export class Token {
   })
   token: string;
   @Prop({ required: true })
-  type: TOKEN_TYPE;
+  type: string;
   @Prop({
     default: false,
   })
