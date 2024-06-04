@@ -4,6 +4,7 @@ import { CreateCharacterDto } from './dto';
 import { ApiException } from 'src/common';
 import { CHARACTER_MODEL } from './constant';
 import { Character, CharacterModel } from './schema';
+import mongoose from 'mongoose';
 
 @Injectable()
 export class CharacterService {
@@ -21,6 +22,6 @@ export class CharacterService {
   }
   async findRandomOne() {
     const character = await this.characterModel.aggregate().sample(1);
-    return character as any as CharacterEntity;
+    return character[0] as Character & { _id: mongoose.Types.ObjectId };
   }
 }
