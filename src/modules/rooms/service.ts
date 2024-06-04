@@ -4,7 +4,7 @@ import { Room, RoomDocument, RoomModel } from './schema/room';
 import { UserEntity } from '../user/entity';
 import { RoomEntity } from './entity/room';
 import { JoinRoomPayload, QueryRoomDto, SendJoinLinkPayload } from './dto';
-import mongoose, { FilterQuery, UpdateQuery } from 'mongoose';
+import mongoose, { FilterQuery, PopulateOptions, UpdateQuery } from 'mongoose';
 import { TokenService } from '../token/service';
 import { ApiException } from 'src/common';
 import { RoomMember } from './schema';
@@ -75,7 +75,10 @@ export class RoomService {
   async findById(id: string | mongoose.Types.ObjectId) {
     return this.roomModel.findById(id);
   }
-  async findByIdPopulate(id: string | mongoose.Types.ObjectId, populates: string[] = []) {
+  async findByIdPopulate(
+    id: string | mongoose.Types.ObjectId,
+    populates: PopulateOptions | (PopulateOptions | string)[],
+  ) {
     return this.roomModel.findById(id).populate(populates);
   }
   async checkUserInRoom(user: UserEntity, room: RoomEntity) {
