@@ -361,7 +361,15 @@ export class VOffice extends Room<OfficeState> {
     }
     await this.roomService.updateRoomMember(this.roomId, auth.id, { online: true });
     // check user is member of this room
-    const updatedRoomData = await this.roomService.findByIdPopulate(this.roomId, ['map', 'members.user']);
+    const updatedRoomData = await this.roomService.findByIdPopulate(this.roomId, [
+      'map',
+      {
+        path: 'members.user',
+        populate: {
+          path: 'character',
+        },
+      },
+    ]);
     client.send(Message.SEND_ROOM_DATA, {
       id: this.roomId,
       ...updatedRoomData.toJSON(),
