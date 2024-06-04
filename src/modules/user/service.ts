@@ -7,7 +7,7 @@ import { USER_MODEL } from './constant';
 import { CharacterModel } from '../character/schema';
 import { CHARACTER_MODEL } from '../character/constant';
 import { QueryDto } from '../admin/dto';
-import { FilterQuery } from 'mongoose';
+import { FilterQuery, UpdateQuery } from 'mongoose';
 import { PaginateResult } from 'src/common/paginate/pagnate';
 
 @Injectable()
@@ -27,15 +27,17 @@ export class UserService {
     return this.userModel.findOne({ email });
   }
   async updateProfile(userId: string, data: UpdateProfileDto) {
-    const user = await this.userModel.findById(userId);
+    const updateQuery: UpdateQuery<User> = {
+      $set: {},
+    };
     if (data.character) {
       const character = await this.characterModel.findById(data.character);
-      if (!character) throw new ApiException(`character not found`);
-      user.character = data.character;
+      if (!character) throw new ApiException(`Character not found`, 404);
+      updateQuery.$set.character = data.character;
     }
-    if (data.fullname) user.fullname = user.fullname;
-    await user.save();
-    return user;
+    if (data.fullname) updateQuery.$set.fullname = data.fullname;
+    console.log({ updateQuery });
+    return this.userModel.updateOne({ _id: userId }, updateQuery);
   }
   async getProfile(user: UserEntity) {
     return this.userModel.findById(user.id).populate(`character`);
