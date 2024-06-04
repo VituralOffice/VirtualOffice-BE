@@ -14,18 +14,17 @@ import { APP_DESCRIPTION, APP_NAME, APP_VERSION } from './constant';
 import { Server, LobbyRoom, RedisPresence } from 'colyseus';
 import { monitor } from '@colyseus/monitor';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import multer from 'multer';
-import express from 'express';
-import cors from 'cors';
+import * as multer from 'multer';
+import * as express from 'express';
+import * as cors from 'cors';
 import * as http from 'node:http';
-import cookieParser from 'cookie-parser';
+import * as cookieParser from 'cookie-parser';
 import { RoomType } from './types/Rooms';
 import { VOffice, injectDeps } from './modules/rooms/VOffice';
 import { RedisIoAdapter } from './adapter';
 import { ICacheService } from './modules/cache/adapter';
 async function bootstrap() {
   const app = express();
-
   const nest = await NestFactory.create(MainModule, new ExpressAdapter(app));
   const redisIoAdapter = new RedisIoAdapter(nest);
   nest.useWebSocketAdapter(redisIoAdapter);
