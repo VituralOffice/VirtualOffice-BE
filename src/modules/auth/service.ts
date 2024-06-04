@@ -38,7 +38,7 @@ export class AuthService {
       userEntity.email = payload.email;
       userEntity.provider = 'local';
       userEntity.fullname = payload.email.split(`@`)[0];
-      userEntity.character = character.id;
+      userEntity.character = character._id.toString();
       user = await this.userService.create(userEntity);
       // subscribe free plan for new user
       const freePlan = await this.planService.findOne({ free: true });
