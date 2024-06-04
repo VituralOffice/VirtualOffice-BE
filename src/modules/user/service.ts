@@ -17,8 +17,7 @@ export class UserService {
     @Inject(CHARACTER_MODEL) private readonly characterModel: CharacterModel,
   ) {}
   async create(data: Partial<UserEntity>) {
-    const user = new this.userModel(data);
-    return user.save();
+    return this.userModel.create(data);
   }
   async findById(id: string) {
     return this.userModel.findById(id);
