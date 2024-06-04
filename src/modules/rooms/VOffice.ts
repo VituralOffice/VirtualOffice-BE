@@ -14,10 +14,7 @@ import {
 import { Message } from '../../types/Messages';
 import { IRoomData } from '../../types/Rooms';
 import { whiteboardRoomIds } from './schema/OfficeState';
-import PlayerUpdateCommand, {
-  PlayerUpdateCharacterIdCommand,
-  PlayerUpdateMeetingStatusCommand,
-} from './commands/PlayerUpdateCommand';
+import PlayerUpdateCommand, { PlayerUpdateMeetingStatusCommand } from './commands/PlayerUpdateCommand';
 import PlayerUpdateNameCommand from './commands/PlayerUpdateNameCommand';
 import { WhiteboardAddUserCommand, WhiteboardRemoveUserCommand } from './commands/WhiteboardUpdateArrayCommand';
 import ChatMessageUpdateCommand from './commands/ChatMessageUpdateCommand';
@@ -41,6 +38,7 @@ import { ChairRemoveUserCommand, ChairSetUserCommand } from './commands/ChairUpd
 import { ChatEntity } from '../chat/entity/chat';
 import { ChatMember } from '../chat/schema/chatMember';
 import { CHAT_TYPE } from '../chat/constant';
+import { CharacterService } from '../character/service';
 
 @Injectable()
 export class VOffice extends Room<OfficeState> {
@@ -51,6 +49,7 @@ export class VOffice extends Room<OfficeState> {
     private readonly secretService: ISecretsService,
     private readonly userService: UserService,
     private readonly chatService: ChatService,
+    private readonly characterService: CharacterService,
   ) {
     super();
   }
@@ -244,11 +243,12 @@ export class VOffice extends Room<OfficeState> {
     });
 
     // when receiving updatePlayerName message, call the PlayerUpdateCharacterIdCommand
-    this.onMessage(Message.UPDATE_PLAYER_CHARACTER_ID, (client, message: { id: number }) => {
-      this.dispatcher.dispatch(new PlayerUpdateCharacterIdCommand(), {
-        client,
-        id: message.id,
-      });
+    this.onMessage(Message.UPDATE_PLAYER_CHARACTER_ID, async (client, message: { id: string }) => {
+      const character = await this.characterService.findById(message.id);
+      if (!character) return;
+      const player = this.state.players.get(client.sessionId);
+      player.characterId = message.id;
+      player.characterAvatar = character.avatar;
     });
 
     // when receiving updatePlayerName message, call the PlayerUpdateNameCommand
