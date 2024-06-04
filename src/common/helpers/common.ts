@@ -1,4 +1,4 @@
-import moment from 'moment';
+import * as moment from 'moment';
 export const getS3Url = (path: string) => {
   return path ? `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${path}` : path;
 };
