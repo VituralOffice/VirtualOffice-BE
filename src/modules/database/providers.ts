@@ -7,7 +7,7 @@ export const databaseProviders = [
   {
     provide: DATABASE_CONNECTION,
     useFactory: async (secretService: ISecretsService): Promise<typeof mongoose> => {
-      const uri = `mongodb://${secretService.database.user}:${secretService.database.pass}@${secretService.database.host}:${secretService.database.port}/${ConnectionName.AUTH}?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&authSource=admin&authMechanism=SCRAM-SHA-256`;
+      const uri = `mongodb://${secretService.database.user}:${secretService.database.pass}@${secretService.database.host}:${secretService.database.port}/${secretService.database.name}?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&authSource=admin&authMechanism=SCRAM-SHA-256`;
       const options = {
         useNewUrlParser: true,
         useUnifiedTopology: true,
