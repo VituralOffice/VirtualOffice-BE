@@ -16,9 +16,11 @@ export abstract class ISecretsService {
   STRIPE_CUSTOMER_PORTAL: string;
   database: {
     host: string;
+    name: string;
     port: number;
     user: string;
     pass: string;
+    uri: string;
   };
   ORIGINS: string;
   mainAPI: {
