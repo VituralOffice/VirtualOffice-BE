@@ -35,6 +35,12 @@ export class SecretsService extends ConfigService implements ISecretsService {
     port: this.get<number>('MONGO_PORT'),
     user: this.get('MONGO_INITDB_ROOT_USERNAME'),
     pass: this.get('MONGO_INITDB_ROOT_PASSWORD'),
+    name: this.get('MONGO_NAME'),
+    uri: `mongodb://${this.get('MONGO_INITDB_ROOT_USERNAME')}:${this.get('MONGO_INITDB_ROOT_PASSWORD')}@${this.get(
+      'MONGO_HOST',
+    )}:${this.get('MONGO_PORT')}/${this.get(
+      `MONGO_NAME`,
+    )}?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&authSource=admin&authMechanism=SCRAM-SHA-256`,
   };
   ORIGINS = this.get<string>('ORIGINS');
   mainAPI = {
