@@ -14,7 +14,6 @@ import { APP_DESCRIPTION, APP_NAME, APP_VERSION } from './constant';
 import { Server, LobbyRoom, RedisPresence, MongooseDriver } from 'colyseus';
 import { monitor } from '@colyseus/monitor';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import multer from 'multer';
 import express from 'express';
 import cors from 'cors';
 import http from 'node:http';
@@ -26,7 +25,7 @@ import { ICacheService } from './modules/cache/adapter';
 import { IDataBaseService } from './modules/database/adapter';
 async function bootstrap() {
   const app = express();
-  const nest = await NestFactory.create(MainModule, new ExpressAdapter(app));
+  const nest = await NestFactory.create(MainModule, new ExpressAdapter(app), { bodyParser: true });
   const redisIoAdapter = new RedisIoAdapter(nest);
   nest.useWebSocketAdapter(redisIoAdapter);
   const loggerService = nest.get(ILoggerService);
@@ -44,6 +43,7 @@ async function bootstrap() {
   app.use('/v1/payments/stripe_webhook', express.raw({ type: 'application/json' }));
   app.use(cookieParser());
   app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
   app.use('/colyseus', monitor());
   const httpServer = http.createServer(app);
   const server = new Server({
@@ -51,9 +51,6 @@ async function bootstrap() {
     presence: new RedisPresence(cacheService.getConfig()),
     driver: new MongooseDriver(secretsService.database.uri),
   });
-  // add multer middleware
-  const upload = multer();
-  app.use('/v1/upload', upload.single('file'));
   server.define(RoomType.LOBBY, LobbyRoom);
   server.define(RoomType.PUBLIC, VOffice, {
     name: 'Public Lobby',
