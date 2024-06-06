@@ -51,8 +51,12 @@ export class MapController {
     if (data.json) map.json = data.json;
     if (data.totalChair) map.totalChair = data.totalChair;
     if (data.totalMeeting) map.totalMeeting = data.totalMeeting;
+    if (data.totalWhiteboard) map.totalWhiteboard = data.totalWhiteboard;
+    if (data.default !== undefined) map.default = data.default;
+    if (data.style) map.style = data.style;
     if (data.name) map.name = data.name;
     if (data.capacity) map.capacity = data.capacity;
+
     await map.save();
     return {
       result: map,

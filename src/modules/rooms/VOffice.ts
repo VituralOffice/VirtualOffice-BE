@@ -14,10 +14,7 @@ import {
 import { Message } from '../../types/Messages';
 import { IRoomData } from '../../types/Rooms';
 import { whiteboardRoomIds } from './schema/OfficeState';
-import PlayerUpdateCommand, {
-  PlayerUpdateCharacterIdCommand,
-  PlayerUpdateMeetingStatusCommand,
-} from './commands/PlayerUpdateCommand';
+import PlayerUpdateCommand, { PlayerUpdateMeetingStatusCommand } from './commands/PlayerUpdateCommand';
 import PlayerUpdateNameCommand from './commands/PlayerUpdateNameCommand';
 import { WhiteboardAddUserCommand, WhiteboardRemoveUserCommand } from './commands/WhiteboardUpdateArrayCommand';
 import ChatMessageUpdateCommand from './commands/ChatMessageUpdateCommand';
@@ -41,6 +38,7 @@ import { ChairRemoveUserCommand, ChairSetUserCommand } from './commands/ChairUpd
 import { ChatEntity } from '../chat/entity/chat';
 import { ChatMember } from '../chat/schema/chatMember';
 import { CHAT_TYPE } from '../chat/constant';
+import { CharacterService } from '../character/service';
 
 @Injectable()
 export class VOffice extends Room<OfficeState> {
@@ -51,6 +49,7 @@ export class VOffice extends Room<OfficeState> {
     private readonly secretService: ISecretsService,
     private readonly userService: UserService,
     private readonly chatService: ChatService,
+    private readonly characterService: CharacterService,
   ) {
     super();
   }
@@ -244,11 +243,12 @@ export class VOffice extends Room<OfficeState> {
     });
 
     // when receiving updatePlayerName message, call the PlayerUpdateCharacterIdCommand
-    this.onMessage(Message.UPDATE_PLAYER_CHARACTER_ID, (client, message: { id: number }) => {
-      this.dispatcher.dispatch(new PlayerUpdateCharacterIdCommand(), {
-        client,
-        id: message.id,
-      });
+    this.onMessage(Message.UPDATE_PLAYER_CHARACTER_ID, async (client, message: { id: string }) => {
+      const character = await this.characterService.findById(message.id);
+      if (!character) return;
+      const player = this.state.players.get(client.sessionId);
+      player.characterId = message.id;
+      player.characterAvatar = character.avatar;
     });
 
     // when receiving updatePlayerName message, call the PlayerUpdateNameCommand
@@ -341,7 +341,7 @@ export class VOffice extends Room<OfficeState> {
   }
 
   async onAuth(client: Client, options: { token: string | null }) {
-    if (!options.token) throw new ServerError(403, 'Forbidden, must be authenticateed');
+    if (!options.token) throw new ServerError(401, 'Unauthorized');
     const payload = verifyJwt(options.token, this.secretService.jwt.accessSecret);
     if (!payload) throw new ServerError(401, 'Unauthorized');
     const user = await this.userService.findById(payload.userId);
@@ -353,12 +353,26 @@ export class VOffice extends Room<OfficeState> {
     const player = newPlayer(auth);
     this.state.players.set(client.sessionId, player);
     this.state.mapClients.set(player.id, client.sessionId);
-    await this.roomService.updateRoomMember(this.roomId, auth.id, { online: true });
     const room = await this.roomService.findById(this.roomId);
-    await room.populate(['map', 'members.user']);
+    if (room.private && !room.members.find((m) => m.user.toString() === auth.id.toString())) return;
+    if (!room.private && !room.members.find((m) => m.user.toString() === auth.id.toString())) {
+      // add user to members
+      await this.roomService.joinRoom(room, auth);
+    }
+    await this.roomService.updateRoomMember(this.roomId, auth.id, { online: true });
+    // check user is member of this room
+    const updatedRoomData = await this.roomService.findByIdPopulate(this.roomId, [
+      'map',
+      {
+        path: 'members.user',
+        populate: {
+          path: 'character',
+        },
+      },
+    ]);
     client.send(Message.SEND_ROOM_DATA, {
       id: this.roomId,
-      ...room.toJSON(),
+      ...updatedRoomData.toJSON(),
     });
   }
 
@@ -369,13 +383,11 @@ export class VOffice extends Room<OfficeState> {
       this.state.mapClients.delete(player.id);
       this.roomService.updateRoomMember(this.roomId, player.id, { online: false });
     }
-
     this.state.chairs.forEach((chair) => {
       if (chair.connectedUser == client.sessionId) {
         chair.connectedUser = '';
       }
     });
-
     this.state.meetings.forEach((meeting) => {
       if (meeting.connectedUser.has(client.sessionId)) {
         meeting.connectedUser.delete(client.sessionId);

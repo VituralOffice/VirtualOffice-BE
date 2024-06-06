@@ -11,43 +11,46 @@ import { HttpLoggerInterceptor } from './common/interceptors/logger/http-logger.
 import { TracingInterceptor } from './common/interceptors/logger/http-tracing.interceptor';
 import { MainModule } from './modules/module';
 import { APP_DESCRIPTION, APP_NAME, APP_VERSION } from './constant';
-import { Server, LobbyRoom } from 'colyseus';
+import { Server, LobbyRoom, RedisPresence, MongooseDriver } from 'colyseus';
 import { monitor } from '@colyseus/monitor';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import * as multer from 'multer';
-import * as express from 'express';
-import * as cors from 'cors';
-import * as http from 'node:http';
-import * as cookieParser from 'cookie-parser';
+import express from 'express';
+import cors from 'cors';
+import http from 'node:http';
+import cookieParser from 'cookie-parser';
 import { RoomType } from './types/Rooms';
 import { VOffice, injectDeps } from './modules/rooms/VOffice';
 import { RedisIoAdapter } from './adapter';
+import { ICacheService } from './modules/cache/adapter';
+import { IDataBaseService } from './modules/database/adapter';
 async function bootstrap() {
   const app = express();
-
-  const nest = await NestFactory.create(MainModule, new ExpressAdapter(app));
+  const nest = await NestFactory.create(MainModule, new ExpressAdapter(app), { bodyParser: true });
   const redisIoAdapter = new RedisIoAdapter(nest);
   nest.useWebSocketAdapter(redisIoAdapter);
   const loggerService = nest.get(ILoggerService);
   const secretsService = nest.get(ISecretsService);
+  const cacheService = nest.get(ICacheService);
   const whitelist = secretsService.ORIGINS.split(',') || ['*'];
   const corsOptions = {
     origin: whitelist,
     credentials: true,
   };
   const corsMiddleware = cors(corsOptions);
-  app.use(cookieParser());
-  app.use(express.json());
   app.use(corsMiddleware);
   app.options('*', corsMiddleware);
+  //stripe webhook
+  app.use('/v1/payments/stripe_webhook', express.raw({ type: 'application/json' }));
+  app.use(cookieParser());
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
   app.use('/colyseus', monitor());
   const httpServer = http.createServer(app);
   const server = new Server({
     server: httpServer,
+    presence: new RedisPresence(cacheService.getConfig()),
+    driver: new MongooseDriver(secretsService.database.uri),
   });
-  // add multer middleware
-  const upload = multer();
-  app.use('/v1/upload', upload.single('file'));
   server.define(RoomType.LOBBY, LobbyRoom);
   server.define(RoomType.PUBLIC, VOffice, {
     name: 'Public Lobby',

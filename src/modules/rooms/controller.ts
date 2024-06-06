@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { RoomService } from './service';
-import { CreateRoomDto, InviteRoomDto, JoinRoomDto, QueryRoomDto } from './dto';
+import { CreateRoomDto, InviteRoomDto, JoinRoomDto, QueryRoomDto, RemoveMemberDto, TransferRoomDto } from './dto';
 import { User } from 'src/common/decorators/current-user.decorator';
 import { UserEntity } from '../user/entity';
 import { ApiException } from 'src/common';
@@ -12,8 +12,6 @@ import { UserService } from '../user/service';
 import { AddMemberChatDto, CreateChatDto, QueryChatDto } from '../chat/dto';
 import { ChatService } from '../chat/service';
 import { CHAT_TYPE } from '../chat/constant';
-import { ChatDocument } from '../chat/schema/chat';
-
 import { genChatName } from './helper';
 import { ChatEntity } from '../chat/entity/chat';
 import { ChatMember } from '../chat/schema/chatMember';
@@ -44,18 +42,9 @@ export class RoomController {
     if (existName) throw new ApiException(`room name exist`, 400);
     let activeSubscription = await this.subscriptionService.findActiveSubscription(user);
     // todo: optimize later
-    // subscribe for free plan
-    if (!activeSubscription) {
-      const freePlan = await this.planService.findOne({ free: true });
-      activeSubscription = await this.subscriptionService.subscribeFreePlan(user, freePlan);
-    }
     // check room limit
     const totalRoom = await this.roomService.countRoom(user);
     await activeSubscription.populate(`plan`);
-    console.log({
-      totalRoom,
-      activeSubscription,
-    });
     if (totalRoom >= (activeSubscription.plan as Plan).maxRoom)
       throw new ApiException(`Reach limit room on plan, please subscribe for new plan`, 400);
     const roomDoc = new RoomEntity();
@@ -63,6 +52,7 @@ export class RoomController {
     member.user = user.id;
     member.role = ROLE.ADMIN;
     roomDoc.name = body.name;
+    roomDoc.plan = body.plan;
     roomDoc.private = body.private;
     roomDoc.map = body.map;
     roomDoc.creator = user.id;
@@ -148,6 +138,38 @@ export class RoomController {
       message: `Success`,
     };
   }
+  @Post(':roomId/leave')
+  async leave(@Param('roomId') roomId: string, @User() user: UserEntity) {
+    const room = await this.roomService.findById(roomId);
+    if (!room) throw new ApiException(`room not found`, 404);
+    await this.roomService.leaveRoom(room, user);
+    return {
+      result: null,
+      message: `Success`,
+    };
+  }
+  @Post(':roomId/remove')
+  async remove(@Param('roomId') roomId: string, @Body() body: RemoveMemberDto, @User() user: UserEntity) {
+    const room = await this.roomService.findById(roomId);
+    if (!room) throw new ApiException(`room not found`, 404);
+    if (room.creator.toString() !== user.id.toString()) throw new ApiException(`forbidden`, 403);
+    await this.roomService.removeMember(roomId, user.id);
+    return {
+      result: null,
+      message: `Success`,
+    };
+  }
+  @Post(':roomId/transfer')
+  async transferOwnership(@Param('roomId') roomId: string, @Body() body: TransferRoomDto, @User() user: UserEntity) {
+    const room = await this.roomService.findById(roomId);
+    if (!room) throw new ApiException(`room not found`, 404);
+    if (room.creator.toString() !== user.id.toString()) throw new ApiException(`Forbidden`, 403);
+    // todo!!!
+    return {
+      result: null,
+      message: `Success`,
+    };
+  }
   //********chat endpoints ********/
   @UseGuards(NotFoundRoomGuard)
   @Post(':roomId/chats')
@@ -211,7 +233,11 @@ export class RoomController {
   }
   @Get(':roomId/messages/:chatId')
   @UseGuards(NotFoundRoomGuard)
-  async getMessagesByChatId(@Param('roomId') roomId: string, @Param('chatId') chatId: string, @User() user: UserEntity) {
+  async getMessagesByChatId(
+    @Param('roomId') roomId: string,
+    @Param('chatId') chatId: string,
+    @User() user: UserEntity,
+  ) {
     const chatMessages = await this.chatService.batchLoadChatMessages({
       chat: chatId,
       limit: 100,
@@ -246,7 +272,7 @@ export class RoomController {
     return {
       result: {
         chats,
-        mapMessages: mapChatMessages
+        mapMessages: mapChatMessages,
       },
       message: `Success`,
     };

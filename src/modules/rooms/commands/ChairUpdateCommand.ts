@@ -22,7 +22,7 @@ export class ChairRemoveUserCommand extends Command<IOfficeState, Payload> {
   execute(data: Payload) {
     const { client, chairId } = data;
     const chair = this.state.chairs.get(chairId);
-
+    if (!chair) return;
     chair.connectedUser = '';
   }
 }

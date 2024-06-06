@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
 import { UserEntity } from '../user/entity';
-import { RoomEntity } from './entity/room';
 import { RoomDocument } from './schema';
 
 export class CreateRoomDto {
@@ -17,6 +16,9 @@ export class CreateRoomDto {
   @IsNotEmpty()
   @IsBoolean()
   private: boolean;
+  @ApiProperty()
+  @IsNotEmpty()
+  plan: string;
 }
 export class QueryRoomDto {
   @ApiProperty()
@@ -25,6 +27,10 @@ export class QueryRoomDto {
     description: `Query room created by user`,
   })
   owned?: boolean;
+  @ApiProperty({
+    description: `Query room created by user`,
+  })
+  active?: boolean;
 }
 export class JoinRoomDto {
   @ApiProperty()
@@ -43,9 +49,21 @@ export class InviteRoomDto {
   @IsString()
   email: string;
 }
+export class TransferRoomDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  email: string;
+}
 export type SendJoinLinkPayload = {
   email: string;
   inviterFullName: string;
   roomName: string;
   url: string;
 };
+export class RemoveMemberDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  user: string;
+}

@@ -42,6 +42,11 @@ export class Room {
     default: true,
   })
   active: boolean;
+  @Prop({
+    type: mongoose.Types.ObjectId,
+    ref: 'Plan',
+  })
+  plan: string;
 }
 
 export const RoomSchema = SchemaFactory.createForClass(Room);

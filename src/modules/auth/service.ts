@@ -13,6 +13,9 @@ import { JwtPayload } from './jwt/jwt.strategy';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ICacheService } from '../cache/adapter';
 import { ExceedIncorrectOtpTryException, OtpExpiredException, UserNotFoundException } from './exception';
+import { PlanService } from '../plan/service';
+import { SubscriptionService } from '../subcription/service';
+import { CharacterService } from '../character/service';
 const OTP_TTL = 30 * 60; //30m
 const INCORRECT_ENTER_OTP_TIME = 5;
 @Injectable()
@@ -23,15 +26,23 @@ export class AuthService {
     private readonly secretService: ISecretsService,
     private readonly mailService: MailerService,
     private readonly cacheService: ICacheService,
+    private readonly planService: PlanService,
+    private readonly subscriptionService: SubscriptionService,
+    private readonly characterService: CharacterService,
   ) {}
   async login(payload: LoginDto): Promise<UserEntity> {
     let user = await this.userService.findByEmail(payload.email);
     if (!user) {
+      const character = await this.characterService.findRandomOne();
       const userEntity = new UserEntity();
       userEntity.email = payload.email;
       userEntity.provider = 'local';
       userEntity.fullname = payload.email.split(`@`)[0];
+      userEntity.character = character._id.toString();
       user = await this.userService.create(userEntity);
+      // subscribe free plan for new user
+      const freePlan = await this.planService.findOne({ free: true });
+      await this.subscriptionService.subscribeFreePlan(user, freePlan);
     }
     return user;
   }

@@ -152,7 +152,7 @@ export class LoggerService implements ILoggerService {
         req: (request) => {
           return {
             method: request.method,
-            curl: PinoRequestConverter.getCurl(request),
+            // curl: PinoRequestConverter.getCurl(request),
           };
         },
         res: pino.stdSerializers.res,
