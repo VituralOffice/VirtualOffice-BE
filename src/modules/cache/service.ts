@@ -14,7 +14,7 @@ export class RedisService implements ICacheService {
   constructor(private readonly config: RedisClientOptions, private readonly logger: ILoggerService) {
     this.client = createClient(this.config) as RedisClientType;
   }
-
+  getConfig = () => this.config;
   async isConnected(): Promise<void> {
     const ping = await this.client.ping();
     if (ping !== 'PONG') this.throwException('redis disconnected.');

@@ -3,7 +3,8 @@ import { CharacterEntity } from './entity';
 import { CreateCharacterDto } from './dto';
 import { ApiException } from 'src/common';
 import { CHARACTER_MODEL } from './constant';
-import { CharacterModel } from './schema';
+import { Character, CharacterModel } from './schema';
+import mongoose from 'mongoose';
 
 @Injectable()
 export class CharacterService {
@@ -15,5 +16,12 @@ export class CharacterService {
     const existName = await this.characterModel.findOne({ name: data.name });
     if (existName) throw new ApiException(`Exist character name`, 400);
     return this.characterModel.create(data);
+  }
+  async findById(id: string) {
+    return this.characterModel.findById(id);
+  }
+  async findRandomOne() {
+    const character = await this.characterModel.aggregate().sample(1);
+    return character[0] as Character & { _id: mongoose.Types.ObjectId };
   }
 }

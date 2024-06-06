@@ -4,10 +4,10 @@ export class UpdateProfileDto {
   @ApiProperty({
     nullable: true,
   })
-  fullname: string;
+  fullname?: string;
   @ApiProperty({
     nullable: true,
     description: 'Id character',
   })
-  character: string;
+  character?: string;
 }

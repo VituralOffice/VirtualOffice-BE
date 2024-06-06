@@ -17,5 +17,11 @@ export class MapEntity extends Map {
   @ApiProperty()
   totalChair: number;
   @ApiProperty()
+  totalWhiteboard: number;
+  @ApiProperty()
+  default: boolean;
+  @ApiProperty()
+  style: string;
+  @ApiProperty()
   json: string;
 }

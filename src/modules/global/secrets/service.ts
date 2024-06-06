@@ -20,14 +20,27 @@ export class SecretsService extends ConfigService implements ISecretsService {
   STRIPE_PRIVATE_KEY = this.get('STRIPE_PRIVATE_KEY');
   STRIPE_SUCCESS_CALLBACK = this.get('STRIPE_SUCCESS_CALLBACK');
   STRIPE_CANCEL_CALLBACK = this.get('STRIPE_SUCCESS_CALLBACK');
+  STRIPE_WEBHOOK_SECRET = this.get(`STRIPE_WEBHOOK_SECRET`);
+  STRIPE_CUSTOMER_PORTAL = this.get(`STRIPE_CUSTOMER_PORTAL`);
   REDIS_URL = this.get('REDIS_URL');
   ENV = this.get('ENV');
   LOG_LEVEL = this.get<LevelWithSilent>('LOG_LEVEL');
+  redis = {
+    url: this.get(`REDIS_URL`),
+    host: this.get(`REDIS_HOST`),
+    port: parseInt(this.get(`REDIS_PORT`)),
+  };
   database = {
     host: this.get('MONGO_HOST'),
     port: this.get<number>('MONGO_PORT'),
     user: this.get('MONGO_INITDB_ROOT_USERNAME'),
     pass: this.get('MONGO_INITDB_ROOT_PASSWORD'),
+    name: this.get('MONGO_NAME'),
+    uri: `mongodb://${this.get('MONGO_INITDB_ROOT_USERNAME')}:${this.get('MONGO_INITDB_ROOT_PASSWORD')}@${this.get(
+      'MONGO_HOST',
+    )}:${this.get('MONGO_PORT')}/${this.get(
+      `MONGO_NAME`,
+    )}?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&authSource=admin&authMechanism=SCRAM-SHA-256`,
   };
   ORIGINS = this.get<string>('ORIGINS');
   mainAPI = {

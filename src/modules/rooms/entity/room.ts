@@ -6,11 +6,9 @@ import { RoomMember } from '../schema/member';
 export class RoomEntity extends Room {
   @ApiProperty()
   id?: string;
-
   @ApiProperty()
   @IsNotEmpty()
   name: string;
-
   @IsNotEmpty()
   @ApiProperty()
   map: string;
@@ -24,4 +22,6 @@ export class RoomEntity extends Room {
 
   @ApiProperty()
   members: RoomMember[];
+  @ApiProperty()
+  plan: string;
 }
