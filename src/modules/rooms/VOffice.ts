@@ -266,9 +266,9 @@ export class VOffice extends Room<OfficeState> {
     });
 
     // when a player is ready to connect, call the PlayerReadyToConnectCommand
-    this.onMessage(Message.VIDEO_CONNECTED, (client) => {
+    this.onMessage(Message.VIDEO_CONNECTED, (client, message: { connected: boolean }) => {
       const player = this.state.players.get(client.sessionId);
-      if (player) player.videoConnected = true;
+      if (player) player.videoConnected = message.connected;
     });
 
     // when a player disconnect a stream, broadcast the signal to the other player connected to the stream
@@ -421,7 +421,7 @@ export class VOffice extends Room<OfficeState> {
  *
  * @description inject dependencies to any class not initialized by nestjs
  */
-export function injectDeps<T extends { new (...args: any[]): Room }>(app: INestApplication, target: T): T {
+export function injectDeps<T extends { new(...args: any[]): Room }>(app: INestApplication, target: T): T {
   const selfDeps = Reflect.getMetadata('self:paramtypes', target) || [];
   const dependencies = Reflect.getMetadata('design:paramtypes', target) || [];
 
