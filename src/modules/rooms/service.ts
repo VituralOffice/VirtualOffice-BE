@@ -110,11 +110,9 @@ export class RoomService {
   async leaveRoom(room: RoomEntity, user: UserEntity) {
     const updateQuery: UpdateQuery<Room> = {
       $pull: {
-        members: [
-          {
-            user: user.id,
-          },
-        ],
+        members: {
+          user: user.id,
+        },
       },
     };
     if (room.creator.toString() === user.id.toString()) {
