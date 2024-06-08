@@ -3,6 +3,7 @@ import { MapEntity } from './entity';
 import { MapModel } from './schema';
 import { MAP_MODEL } from './constant';
 import mongoose from 'mongoose';
+import { QueryMapDto } from './dto';
 
 @Injectable()
 export class MapService {
@@ -17,6 +18,30 @@ export class MapService {
   async findAll() {
     return this.mapModel.find();
   }
+  async findAllAndGroup(query: QueryMapDto) {
+    let _ = query; // use later
+    return this.mapModel.aggregate([
+      {
+        $sort: { capacity: 1 },
+      },
+      {
+        $group: {
+          _id: '$style',
+          maps: { $push: '$$ROOT' },
+        },
+      },
+      {
+        $addFields: {
+          style: '$_id',
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+        },
+      },
+    ]);
+  }
   async findById(id: string) {
     return this.mapModel.findById(id);
   }
@@ -24,6 +49,6 @@ export class MapService {
     return this.mapModel.findOne({ name });
   }
   async count() {
-    return this.mapModel.countDocuments()
+    return this.mapModel.countDocuments();
   }
 }
