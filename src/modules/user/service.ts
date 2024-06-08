@@ -9,6 +9,7 @@ import { CHARACTER_MODEL } from '../character/constant';
 import { QueryDto } from '../admin/dto';
 import { FilterQuery, UpdateQuery } from 'mongoose';
 import { PaginateResult } from 'src/common/paginate/pagnate';
+import { ROLE } from 'src/common/enum/role';
 
 @Injectable()
 export class UserService {
@@ -59,5 +60,29 @@ export class UserService {
       total,
       data,
     } as PaginateResult<UserDocument>;
+  }
+  async count(role: string = ROLE.USER) {
+    return this.userModel.countDocuments({ role });
+  }
+  async countByDate(dateSequences: Date[], filter?: FilterQuery<User>) {
+    return Promise.all(
+      dateSequences.map(async (date) => ({
+        count: await this.userModel.countDocuments({
+          createdAt: { $lte: this.getEndOfDay(date) },
+          ...filter,
+        }),
+        date,
+      })),
+    );
+  }
+  getStartOfDay(date: Date) {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    return startOfDay;
+  }
+  getEndOfDay(date: Date) {
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+    return endOfDay;
   }
 }
