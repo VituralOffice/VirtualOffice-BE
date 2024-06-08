@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty, IsString } from 'class-validator';
+import { IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CreateMapDto {
@@ -52,4 +52,14 @@ export class UpdateMapDto {
   style?: string;
   @ApiProperty()
   json?: string;
+}
+export class QueryMapDto {
+  @ApiProperty()
+  @IsOptional()
+  @IsIn(['style']) //.... other
+  groupBy?: string;
+  @ApiProperty()
+  @IsOptional()
+  @IsIn(['capacity'])
+  orderBy?: string;
 }

@@ -99,4 +99,7 @@ export class SubscriptionService {
       _id: subscriptionId,
     });
   }
+  async count(filter: FilterQuery<Subscription>) {
+    return this.subscriptionModel.countDocuments(filter);
+  }
 }
