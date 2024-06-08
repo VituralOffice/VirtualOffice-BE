@@ -83,6 +83,8 @@ export class AuthController {
   })
   async refresh(@Body() body: RefreshTokenDto, @Req() req: Request, @Res() res: Response) {
     const { accessToken, refreshToken } = await this.authService.refreshToken(body.refreshToken);
+    res.clearCookie(JWT_ACCESS_KEY);
+    res.clearCookie(JWT_REFRESH_KEY);
     res.cookie(JWT_ACCESS_KEY, accessToken, {
       httpOnly: false,
       secure: true,

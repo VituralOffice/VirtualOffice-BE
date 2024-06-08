@@ -39,8 +39,6 @@ export class User {
     default: ROLE.USER,
   })
   role: string;
-  @Prop()
-  password: string;
   @Prop({
     default: false,
   })

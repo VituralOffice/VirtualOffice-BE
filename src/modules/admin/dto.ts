@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
 import { IsNumber, IsOptional } from 'class-validator';
+import moment from 'moment';
 
 export class QueryDto {
   @Transform(({ value }) => parseInt(value))
@@ -11,4 +12,9 @@ export class QueryDto {
   @IsOptional()
   limit: number = 20;
   q?: string;
+}
+export class QueryUserStatsDto {
+  @Transform(({ value }) => (value ? moment(value, `YYYY-MM-DD`).toDate() : new Date()))
+  @IsOptional()
+  startDate: Date;
 }

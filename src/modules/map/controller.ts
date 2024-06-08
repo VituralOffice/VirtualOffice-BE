@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Param, Patch, Post, Put } from '@nestjs/common';
-import { CreateMapDto, UpdateMapDto } from './dto';
+import { Body, Controller, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
+import { CreateMapDto, QueryMapDto, UpdateMapDto } from './dto';
 import { MapService } from './service';
 import { ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/role.decorator';
@@ -25,9 +25,9 @@ export class MapController {
   }
   @Get()
   @Public()
-  async findAll() {
+  async findAll(@Query() query: QueryMapDto) {
     //todo: paginate later
-    const maps = await this.mapService.findAll();
+    const maps = query.groupBy ? await this.mapService.findAllAndGroup(query) : await this.mapService.findAll();
     return {
       result: maps,
       message: `Success`,

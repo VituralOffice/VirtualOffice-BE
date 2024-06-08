@@ -169,4 +169,7 @@ export class RoomService {
       creator: user.id,
     });
   }
+  async count(filter?: FilterQuery<Room>) {
+    return this.roomModel.countDocuments(filter)
+  }
 }
