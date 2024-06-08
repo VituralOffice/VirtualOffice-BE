@@ -23,4 +23,7 @@ export class MapService {
   async findByName(name: string) {
     return this.mapModel.findOne({ name });
   }
+  async count() {
+    return this.mapModel.countDocuments()
+  }
 }

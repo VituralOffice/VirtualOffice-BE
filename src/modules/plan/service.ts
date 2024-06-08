@@ -23,4 +23,7 @@ export class PlanService {
   async findOne(filter: FilterQuery<Plan>): Promise<PlanEntity> {
     return this.planModel.findOne(filter);
   }
+  async count() {
+    return this.planModel.countDocuments()
+  }
 }
