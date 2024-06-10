@@ -11,7 +11,8 @@ import { HttpLoggerInterceptor } from './common/interceptors/logger/http-logger.
 import { TracingInterceptor } from './common/interceptors/logger/http-tracing.interceptor';
 import { MainModule } from './modules/module';
 import { APP_DESCRIPTION, APP_NAME, APP_VERSION } from './constant';
-import { Server, LobbyRoom, RedisPresence, MongooseDriver } from 'colyseus';
+import { Server as ColyseusServer, LobbyRoom, RedisPresence, MongooseDriver } from 'colyseus';
+import { IncomingMessage, ServerResponse } from 'http';
 import { monitor } from '@colyseus/monitor';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
@@ -108,3 +109,21 @@ async function bootstrap() {
 }
 
 bootstrap();
+
+export class Server extends ColyseusServer {
+  protected async handleMatchMakeRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const headers = {
+      'Access-Control-Allow-Headers':
+        'Origin, X-Requested-With, Content-Type, Accept, Accept, Accept-Encoding, Accept-Language, Authorization,Baggage,Refere,Sec-Ch-Ua,Sec-Ch-Ua-Mobile,Sec-Ch-Ua-Platform,Sentry-Trace, User-Agent ',
+      'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Max-Age': 2592000,
+    };
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204, headers);
+      res.end();
+    } else {
+      return super.handleMatchMakeRequest(req, res);
+    }
+  }
+}
