@@ -56,7 +56,7 @@ export class MapController {
     if (data.style) map.style = data.style;
     if (data.name) map.name = data.name;
     if (data.capacity) map.capacity = data.capacity;
-
+    if (data.icon) map.icon = data.icon;
     await map.save();
     return {
       result: map,
