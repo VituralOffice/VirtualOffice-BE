@@ -28,6 +28,8 @@ export class CreateMapDto {
   @ApiProperty()
   style: string;
   @ApiProperty()
+  icon: string;
+  @ApiProperty()
   @IsNotEmpty()
   json: string;
 }
@@ -50,6 +52,8 @@ export class UpdateMapDto {
   default?: boolean;
   @ApiProperty()
   style?: string;
+  @ApiProperty()
+  icon?: string;
   @ApiProperty()
   json?: string;
 }

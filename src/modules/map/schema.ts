@@ -40,6 +40,10 @@ export class Map {
   })
   style: string;
   @Prop({
+    default: '',
+  })
+  icon: string;
+  @Prop({
     default: true,
   })
   active: boolean;
