@@ -23,5 +23,7 @@ export class MapEntity extends Map {
   @ApiProperty()
   style: string;
   @ApiProperty()
+  icon: string;
+  @ApiProperty()
   json: string;
 }
