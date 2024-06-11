@@ -260,9 +260,9 @@ export class VOffice extends Room<OfficeState> {
     });
 
     // when a player is ready to connect, call the PlayerReadyToConnectCommand
-    this.onMessage(Message.READY_TO_CONNECT, (client) => {
+    this.onMessage(Message.READY_TO_CONNECT, (client, message: { ready: boolean }) => {
       const player = this.state.players.get(client.sessionId);
-      if (player) player.readyToConnect = true;
+      if (player) player.readyToConnect = message.ready;
     });
 
     // when a player is ready to connect, call the PlayerReadyToConnectCommand
