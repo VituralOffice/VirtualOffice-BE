@@ -421,7 +421,7 @@ export class VOffice extends Room<OfficeState> {
  *
  * @description inject dependencies to any class not initialized by nestjs
  */
-export function injectDeps<T extends { new(...args: any[]): Room }>(app: INestApplication, target: T): T {
+export function injectDeps<T extends { new (...args: any[]): Room }>(app: INestApplication, target: T): T {
   const selfDeps = Reflect.getMetadata('self:paramtypes', target) || [];
   const dependencies = Reflect.getMetadata('design:paramtypes', target) || [];
 
@@ -463,6 +463,7 @@ export const convertToChatMessageSchema = (chatMessages: ChatMessageDocument[]) 
     const m = new MessageSchema();
     m.text = cm.message.text;
     m.type = cm.message.type;
+    m.path = cm.message.path;
     const reacts: React[] = [];
     icm.message = m;
     icm.createdAt = cm.createdAt.toString();

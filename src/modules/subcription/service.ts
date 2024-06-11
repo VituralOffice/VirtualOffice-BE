@@ -78,10 +78,13 @@ export class SubscriptionService {
     return subscription.save();
   }
   async findActiveSubscription(user: UserEntity) {
-    return this.subscriptionModel.findOne({
-      status: SUBSCRIPTION_STATUS.ACTIVE,
-      user: user.id,
-    });
+    return this.subscriptionModel
+      .findOne({
+        status: SUBSCRIPTION_STATUS.ACTIVE,
+        user: user.id,
+        freePlan: { $in: [false, true] },
+      })
+      .sort({ freePlan: 1 });
   }
   async subscribeFreePlan(user: UserEntity, plan: PlanEntity) {
     const doc = new Subscription();

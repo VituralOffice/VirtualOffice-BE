@@ -67,7 +67,7 @@ export class RoomService {
     if (query.name) param.name = { $regex: `${query.name}`, $options: 'i' };
     if (query.owned) param.creator = user.id;
     if (query.active !== undefined) param.active = query.active;
-    return this.roomModel.find(param).populate('map');
+    return this.roomModel.find(param).populate('map').sort({ createdAt: -1 });
   }
   async findByName(name: string) {
     return this.roomModel.findOne({ name });
@@ -170,6 +170,6 @@ export class RoomService {
     });
   }
   async count(filter?: FilterQuery<Room>) {
-    return this.roomModel.countDocuments(filter)
+    return this.roomModel.countDocuments(filter);
   }
 }
