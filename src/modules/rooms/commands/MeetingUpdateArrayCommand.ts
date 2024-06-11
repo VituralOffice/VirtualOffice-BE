@@ -5,7 +5,7 @@ import { IOfficeState } from '../../../types/IOfficeState';
 type Payload = {
   client: Client;
   meetingId: string;
-}
+};
 
 type AddMemberPayload = {
   client: Client;
@@ -60,14 +60,16 @@ export class MeetingRemoveUserCommand extends Command<IOfficeState, RemoveMember
     const { client, meetingId } = data;
     const meeting = this.state.meetings.get(meetingId);
 
-    if (!meeting) return;
+    if (!meeting || !meeting.isOpen) return;
 
     if (meeting.connectedUser.has(client.sessionId)) {
       meeting.connectedUser.delete(client.sessionId);
       // give authority to second user joined to meeting
-      if (client.sessionId === meeting.adminUser && meeting.connectedUser.size > 0)
-        meeting.adminUser = [...meeting.connectedUser.values()][0];
-      if (meeting.connectedUser.size == 0 && meeting.isOpen) {
+      // meeting.adminUser = [...meeting.connectedUser.values()][0];
+      if (
+        (client.sessionId === meeting.adminUser && meeting.isOpen) ||
+        (meeting.connectedUser.size == 0 && meeting.isOpen)
+      ) {
         meeting.isOpen = false;
         meeting.title = '';
         meeting.chatId = '';
