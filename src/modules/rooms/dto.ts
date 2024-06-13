@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { UserEntity } from '../user/entity';
 import { RoomDocument } from './schema';
 
@@ -48,6 +48,24 @@ export class InviteRoomDto {
   @IsNotEmpty()
   @IsString()
   email: string;
+}
+export class ChangeRoomSettingDto {
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  map: string;
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  name: string;
+  @ApiProperty()
+  @IsBoolean()
+  @IsOptional()
+  private: boolean;
+  @ApiProperty()
+  @IsBoolean()
+  @IsOptional()
+  active: boolean;
 }
 export class TransferRoomDto {
   @ApiProperty()

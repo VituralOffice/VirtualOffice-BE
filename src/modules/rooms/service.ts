@@ -3,7 +3,7 @@ import { JOIN_ROOM_LINK_TTL, ROOM_MODEL } from './constant';
 import { Room, RoomDocument, RoomModel } from './schema/room';
 import { UserEntity } from '../user/entity';
 import { RoomEntity } from './entity/room';
-import { JoinRoomPayload, QueryRoomDto, SendJoinLinkPayload } from './dto';
+import { ChangeRoomSettingDto, JoinRoomPayload, QueryRoomDto, SendJoinLinkPayload } from './dto';
 import mongoose, { FilterQuery, PopulateOptions, UpdateQuery } from 'mongoose';
 import { TokenService } from '../token/service';
 import { ApiException } from 'src/common';
@@ -155,11 +155,9 @@ export class RoomService {
   async removeMember(roomId: string, userId: string) {
     const updateQuery: UpdateQuery<Room> = {
       $pull: {
-        members: [
-          {
-            user: userId,
-          },
-        ],
+        members: {
+          user: userId,
+        },
       },
     };
     return this.roomModel.updateOne({ _id: roomId }, updateQuery);
@@ -171,5 +169,8 @@ export class RoomService {
   }
   async count(filter?: FilterQuery<Room>) {
     return this.roomModel.countDocuments(filter);
+  }
+  async updateRoomSettings(roomId: string, updateFields: Partial<ChangeRoomSettingDto>) {
+    await this.roomModel.updateOne({ _id: roomId }, { $set: updateFields });
   }
 }
