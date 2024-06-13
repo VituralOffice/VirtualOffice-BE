@@ -55,6 +55,12 @@ export class ChatService {
     chat.members = members;
     return this.chatModel.create(chat);
   }
+  async deleteChat(chatId: string): Promise<void> {
+    await this.chatModel.deleteOne({ _id: chatId });
+  }
+  async deleteAllChatsInRoom(roomId: string): Promise<void> {
+    await this.chatModel.deleteMany({ room: roomId });
+  }
   async addMember(chat: ChatDocument, member: UserEntity) {
     const newMember = new ChatMember();
     newMember.user = member.id;

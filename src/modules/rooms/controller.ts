@@ -177,7 +177,7 @@ export class RoomController {
       message: `Success`,
     };
   }
-  @Post(':roomId/leave')
+  @Get(':roomId/leave')
   async leave(@Param('roomId') roomId: string, @User() user: UserEntity) {
     const room = await this.roomService.findById(roomId);
     if (!room) throw new ApiException(`room not found`, 404);
@@ -193,6 +193,18 @@ export class RoomController {
     if (!room) throw new ApiException(`room not found`, 404);
     if (room.creator.toString() !== user.id.toString()) throw new ApiException(`forbidden`, 403);
     await this.roomService.removeMember(roomId, body.user);
+    return {
+      result: null,
+      message: `Success`,
+    };
+  }
+  @Delete(':roomId/delete')
+  async deleteRoom(@Param('roomId') roomId: string, @User() user: UserEntity) {
+    const room = await this.roomService.findById(roomId);
+    if (!room) throw new ApiException(`room not found`, 404);
+    if (room.creator.toString() !== user.id.toString()) throw new ApiException(`forbidden`, 403);
+    await this.chatService.deleteAllChatsInRoom(roomId);
+    await this.roomService.deleteRoom(roomId);
     return {
       result: null,
       message: `Success`,

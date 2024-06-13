@@ -108,6 +108,7 @@ export class RoomService {
     return url;
   }
   async leaveRoom(room: RoomEntity, user: UserEntity) {
+    if (room.creator.toString() === user.id.toString()) return;
     const updateQuery: UpdateQuery<Room> = {
       $pull: {
         members: {
@@ -115,11 +116,6 @@ export class RoomService {
         },
       },
     };
-    if (room.creator.toString() === user.id.toString()) {
-      // if admin leave room change `active`: false,
-      //todo: notify to member that room no longer active
-      updateQuery['active'] = false;
-    }
     await this.roomModel.updateOne(
       {
         _id: room.id,
@@ -144,6 +140,9 @@ export class RoomService {
         room_name: payload.roomName,
       },
     });
+  }
+  async deleteRoom(roomId: string): Promise<void> {
+    await this.roomModel.deleteOne({ _id: roomId });
   }
   async updateRoomMember(roomId: string, userId: string, payload: Partial<RoomMember>) {
     const updatePayload: any = {};
