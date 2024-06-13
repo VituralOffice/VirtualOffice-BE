@@ -1,6 +1,14 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { RoomService } from './service';
-import { CreateRoomDto, InviteRoomDto, JoinRoomDto, QueryRoomDto, RemoveMemberDto, TransferRoomDto } from './dto';
+import {
+  ChangeRoomSettingDto,
+  CreateRoomDto,
+  InviteRoomDto,
+  JoinRoomDto,
+  QueryRoomDto,
+  RemoveMemberDto,
+  TransferRoomDto,
+} from './dto';
 import { User } from 'src/common/decorators/current-user.decorator';
 import { UserEntity } from '../user/entity';
 import { ApiException } from 'src/common';
@@ -138,6 +146,37 @@ export class RoomController {
       message: `Success`,
     };
   }
+  @Post(':roomId/setting')
+  async changeRoomSetting(
+    @Param('roomId') roomId: string,
+    @Body() body: ChangeRoomSettingDto,
+    @User() user: UserEntity,
+  ) {
+    const room = await this.roomService.findById(roomId);
+    if (!room) throw new ApiException(`room not found`, 404);
+    if (room.creator.toString() !== user.id.toString()) throw new ApiException(`forbidden`, 403);
+
+    const updateFields: Partial<ChangeRoomSettingDto> = {};
+    if (body.map !== undefined) updateFields.map = body.map;
+    if (body.name !== undefined) updateFields.name = body.name;
+    if (body.private !== undefined) updateFields.private = body.private;
+    if (body.active !== undefined) updateFields.active = body.active;
+
+    if (Object.keys(updateFields).length === 0) {
+      return {
+        result: null,
+        message: `No valid fields provided for update`,
+      };
+    }
+
+    // Update the room settings
+    await this.roomService.updateRoomSettings(roomId, updateFields);
+
+    return {
+      result: null,
+      message: `Success`,
+    };
+  }
   @Post(':roomId/leave')
   async leave(@Param('roomId') roomId: string, @User() user: UserEntity) {
     const room = await this.roomService.findById(roomId);
@@ -153,7 +192,7 @@ export class RoomController {
     const room = await this.roomService.findById(roomId);
     if (!room) throw new ApiException(`room not found`, 404);
     if (room.creator.toString() !== user.id.toString()) throw new ApiException(`forbidden`, 403);
-    await this.roomService.removeMember(roomId, user.id);
+    await this.roomService.removeMember(roomId, body.user);
     return {
       result: null,
       message: `Success`,
