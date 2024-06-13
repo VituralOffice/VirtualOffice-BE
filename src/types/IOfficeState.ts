@@ -10,7 +10,7 @@ export interface IPlayer extends UserEntity, Schema {
   y: number;
   anim: string;
   readyToConnect: boolean;
-  videoConnected: boolean;
+  mediaConnected: boolean;
   isInMeeting: boolean;
   characterId: string;
   characterAvatar: string;

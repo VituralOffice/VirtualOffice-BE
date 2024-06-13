@@ -266,9 +266,9 @@ export class VOffice extends Room<OfficeState> {
     });
 
     // when a player is ready to connect, call the PlayerReadyToConnectCommand
-    this.onMessage(Message.VIDEO_CONNECTED, (client, message: { connected: boolean }) => {
+    this.onMessage(Message.MEDIA_CONNECTED, (client, message: { connected: boolean }) => {
       const player = this.state.players.get(client.sessionId);
-      if (player) player.videoConnected = message.connected;
+      if (player) player.mediaConnected = message.connected;
     });
 
     // when a player disconnect a stream, broadcast the signal to the other player connected to the stream
