@@ -12,7 +12,7 @@ import {
   Chair,
 } from './schema/OfficeState';
 import { Message } from '../../types/Messages';
-import { IRoomData } from '../../types/Rooms';
+import { IMapData, IRoomData } from '../../types/Rooms';
 import { whiteboardRoomIds } from './schema/OfficeState';
 import PlayerUpdateCommand, { PlayerUpdateMeetingStatusCommand } from './commands/PlayerUpdateCommand';
 import PlayerUpdateNameCommand from './commands/PlayerUpdateNameCommand';
@@ -57,18 +57,21 @@ export class VOffice extends Room<OfficeState> {
     this.name = options.name;
     this.autoDispose = false;
     this.setMetadata({ ...options });
-    this.roomId = options.id;
+    this.roomId = options._id;
     this.setState(new OfficeState());
-    for (let i = 0; i < 5; i++) {
+    const room = await this.roomService.findByIdPopulate(this.roomId, ['map']);
+    const map = room.map as unknown as IMapData;
+    for (let i = 0; i < map.totalMeeting; i++) {
       this.state.meetings.set(String(i), new Meeting());
     }
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < map.totalWhiteboard; i++) {
       this.state.whiteboards.set(String(i), new Whiteboard());
     }
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < map.totalChair; i++) {
       this.state.chairs.set(String(i), new Chair());
     }
 
+    //#region register events
     // when a player connect to a chair, add to the chair connectedUser array
     this.onMessage(Message.CONNECT_TO_CHAIR, (client, message: { chairId: string }) => {
       this.dispatcher.dispatch(new ChairSetUserCommand(), {
@@ -338,6 +341,7 @@ export class VOffice extends Room<OfficeState> {
         });
       },
     );
+    //#endregion register events
   }
 
   async onAuth(client: Client, options: { token: string | null }) {
@@ -353,27 +357,27 @@ export class VOffice extends Room<OfficeState> {
     const player = newPlayer(auth);
     this.state.players.set(client.sessionId, player);
     this.state.mapClients.set(player.id, client.sessionId);
-    const room = await this.roomService.findById(this.roomId);
-    if (room.private && !room.members.find((m) => m.user.toString() === auth.id.toString())) return;
-    if (!room.private && !room.members.find((m) => m.user.toString() === auth.id.toString())) {
-      // add user to members
-      await this.roomService.joinRoom(room, auth);
-    }
-    await this.roomService.updateRoomMember(this.roomId, auth.id, { online: true });
-    // check user is member of this room
-    const updatedRoomData = await this.roomService.findByIdPopulate(this.roomId, [
-      'map',
-      {
-        path: 'members.user',
-        populate: {
-          path: 'character',
-        },
-      },
-    ]);
-    client.send(Message.SEND_ROOM_DATA, {
-      id: this.roomId,
-      ...updatedRoomData.toJSON(),
-    });
+    // const room = await this.roomService.findById(this.roomId);
+    // if (room.private && !room.members.find((m) => m.user.toString() === auth.id.toString())) return;
+    // if (!room.private && !room.members.find((m) => m.user.toString() === auth.id.toString())) {
+    //   // add user to members
+    //   await this.roomService.joinRoom(room, auth);
+    // }
+    // await this.roomService.updateRoomMember(this.roomId, auth.id, { online: true });
+    // // check user is member of this room
+    // const updatedRoomData = await this.roomService.findByIdPopulate(this.roomId, [
+    //   'map',
+    //   {
+    //     path: 'members.user',
+    //     populate: {
+    //       path: 'character',
+    //     },
+    //   },
+    // ]);
+    // client.send(Message.SEND_ROOM_DATA, {
+    //   id: this.roomId,
+    //   ...updatedRoomData.toJSON(),
+    // });
   }
 
   async onLeave(client: Client, consented: boolean) {

@@ -97,7 +97,7 @@ export class RoomService {
     const token = randomHash();
     const key = `room_${room.id}_${token}`;
     await this.cacheService.set(key, room.id, { EX: JOIN_ROOM_LINK_TTL });
-    const url = `${this.secretsService.APP_URL}/rooms/${room.id}/join?token=${token}`;
+    const url = `${this.secretsService.APP_URL}/rooms/${room.id}/join-by-token?token=${token}`;
     return url;
   }
   async genTransferLink(room: RoomEntity) {
