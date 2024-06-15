@@ -19,11 +19,10 @@ import express from 'express';
 import cors from 'cors';
 import http from 'node:http';
 import cookieParser from 'cookie-parser';
-import { RoomType } from './types/Rooms';
+import { IMapData, RoomType } from './types/Rooms';
 import { VOffice, injectDeps } from './modules/rooms/VOffice';
 import { RedisIoAdapter } from './adapter';
 import { ICacheService } from './modules/cache/adapter';
-import { IDataBaseService } from './modules/database/adapter';
 async function bootstrap() {
   const app = express();
   const nest = await NestFactory.create(MainModule, new ExpressAdapter(app), { bodyParser: true });
@@ -54,9 +53,12 @@ async function bootstrap() {
   });
   server.define(RoomType.LOBBY, LobbyRoom);
   server.define(RoomType.PUBLIC, VOffice, {
+    _id: '',
+    active: true,
+    creator: '',
+    members: [],
     name: 'Public Lobby',
-    id: ``,
-    map: ``,
+    map: {} as IMapData,
     private: false,
     autoDispose: false,
   });
