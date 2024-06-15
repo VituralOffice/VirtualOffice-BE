@@ -63,6 +63,7 @@ export class SecretsService extends ConfigService implements ISecretsService {
     secretAccessKey: this.get<string>(`AWS_SECRET_ACCESS_KEY`),
     region: this.get<string>(`AWS_REGION`),
     bucketName: this.get<string>(`AWS_BUCKET_NAME`),
+    s3Endpoint: this.get<string>(`AWS_S3_ENDPOINT`),
   };
   oauthGoogle = {
     clientId: this.get<string>(`OAUTH_GOOGLE_ID`),

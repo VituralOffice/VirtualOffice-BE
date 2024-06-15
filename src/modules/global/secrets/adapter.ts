@@ -43,6 +43,7 @@ export abstract class ISecretsService {
     secretAccessKey: string;
     region: string;
     bucketName: string;
+    s3Endpoint?: string;
   };
   oauthGoogle: {
     clientId: string;
