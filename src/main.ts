@@ -17,6 +17,7 @@ import { monitor } from '@colyseus/monitor';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
 import cors from 'cors';
+import morgan from 'morgan';
 import http from 'node:http';
 import cookieParser from 'cookie-parser';
 import { IMapData, RoomType } from './types/Rooms';
@@ -25,6 +26,7 @@ import { RedisIoAdapter } from './adapter';
 import { ICacheService } from './modules/cache/adapter';
 async function bootstrap() {
   const app = express();
+  app.use(morgan('tiny'));
   const nest = await NestFactory.create(MainModule, new ExpressAdapter(app), { bodyParser: true });
   const redisIoAdapter = new RedisIoAdapter(nest);
   nest.useWebSocketAdapter(redisIoAdapter);
@@ -71,13 +73,7 @@ async function bootstrap() {
   );
 
   loggerService.setApplication(APP_NAME);
-  //nest.enableCors({});
   nest.useGlobalFilters(new AppExceptionFilter(loggerService, secretsService));
-  nest.useGlobalInterceptors(
-    new ExceptionInterceptor(),
-    new HttpLoggerInterceptor(loggerService),
-    new TracingInterceptor({ app: APP_NAME, version: APP_VERSION }, loggerService),
-  );
   const {
     authAPI: { port: PORT, url },
     ENV,
