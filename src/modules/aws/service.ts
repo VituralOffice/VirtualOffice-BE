@@ -16,6 +16,9 @@ export class AWSService implements IAWSService {
     });
   }
   getS3() {
-    return new S3({});
+    return new S3({
+      endpoint: this.secretsService.aws.s3Endpoint,
+      s3ForcePathStyle: true,
+    });
   }
 }
