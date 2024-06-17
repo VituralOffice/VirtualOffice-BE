@@ -8,7 +8,6 @@ import {
   React,
   ChatMessage,
   Message as MessageSchema,
-  MapMessage,
   Chair,
 } from './schema/OfficeState';
 import { Message } from '../../types/Messages';
@@ -17,7 +16,6 @@ import { whiteboardRoomIds } from './schema/OfficeState';
 import PlayerUpdateCommand, { PlayerUpdateMeetingStatusCommand } from './commands/PlayerUpdateCommand';
 import PlayerUpdateNameCommand from './commands/PlayerUpdateNameCommand';
 import { WhiteboardAddUserCommand, WhiteboardRemoveUserCommand } from './commands/WhiteboardUpdateArrayCommand';
-import ChatMessageUpdateCommand from './commands/ChatMessageUpdateCommand';
 import { RoomService } from './service';
 import { INestApplication, Injectable } from '@nestjs/common';
 import { verifyJwt } from 'src/common/helpers/jwt';
@@ -25,8 +23,6 @@ import { ISecretsService } from '../global/secrets/adapter';
 import { UserService } from '../user/service';
 import { UserEntity } from '../user/entity';
 import { ChatService } from '../chat/service';
-import { QueryChatDto } from '../chat/dto';
-import { IChatMessage, IMapMessage } from 'src/types/IOfficeState';
 import { ChatMessageDocument } from '../chat/schema/chatMessage';
 import {
   MeetingAddUserCommand,
@@ -39,11 +35,15 @@ import { ChatEntity } from '../chat/entity/chat';
 import { ChatMember } from '../chat/schema/chatMember';
 import { CHAT_TYPE } from '../chat/constant';
 import { CharacterService } from '../character/service';
+import { ChatDocument } from '../chat/schema/chat';
 
 @Injectable()
 export class VOffice extends Room<OfficeState> {
   private dispatcher = new Dispatcher(this);
   private name: string;
+
+  public static roomsMap: Map<string, VOffice> = new Map();
+
   constructor(
     private readonly roomService: RoomService,
     private readonly secretService: ISecretsService,
@@ -58,6 +58,9 @@ export class VOffice extends Room<OfficeState> {
     this.autoDispose = false;
     this.setMetadata({ ...options });
     this.roomId = options._id;
+
+    VOffice.roomsMap.set(this.roomId, this);
+
     this.setState(new OfficeState());
     const room = await this.roomService.findByIdPopulate(this.roomId, ['map']);
     const map = room.map as unknown as IMapData;
@@ -119,8 +122,10 @@ export class VOffice extends Room<OfficeState> {
 
           client.send(Message.CONNECT_TO_MEETING, {
             meetingId: message.meetingId,
-            chatId: chatDoc.id,
             title: chat.name,
+          });
+          client.send(Message.ADD_CHAT, {
+            chat: chatDoc,
           });
           console.log('send new group chaat', chat.name);
         } else {
@@ -139,7 +144,8 @@ export class VOffice extends Room<OfficeState> {
             await chat.save();
           }
 
-          client.send(Message.CONNECT_TO_MEETING, { meetingId: message.meetingId, chatId: chat.id, title: chat.name });
+          client.send(Message.CONNECT_TO_MEETING, { meetingId: message.meetingId, title: chat.name });
+          client.send(Message.ADD_CHAT, { chat: chat });
           console.log('send exists group chat', chat.name);
         }
 
@@ -380,6 +386,15 @@ export class VOffice extends Room<OfficeState> {
     // });
   }
 
+  sendChatToClient(userId: string, chat: ChatDocument) {
+    const sessionId = this.state.mapClients.get(userId);
+    const client = this.clients.find((c) => c.sessionId == sessionId);
+    if (client) {
+      console.log(`send chat to ${client.sessionId}`);
+      client.send(Message.ADD_CHAT, { chat });
+    }
+  }
+
   async onLeave(client: Client, consented: boolean) {
     if (this.state.players.has(client.sessionId)) {
       const player = this.state.players[client.sessionId];
@@ -418,6 +433,9 @@ export class VOffice extends Room<OfficeState> {
 
     console.log('room', this.roomId, 'disposing...');
     this.dispatcher.stop();
+
+    // Remove this room from the static map when the room is disposed
+    VOffice.roomsMap.delete(this.roomId);
   }
 }
 

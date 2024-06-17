@@ -29,7 +29,7 @@ import { SubscriptionService } from '../subcription/service';
 import { PlanService } from '../plan/service';
 import { Plan } from '../plan/schema';
 import { IMapMessage } from 'src/types/IOfficeState';
-import { convertToChatMessageSchema } from './VOffice';
+import { VOffice, convertToChatMessageSchema } from './VOffice';
 import { MapMessage } from './schema/OfficeState';
 @ApiTags('rooms')
 @Controller({
@@ -290,17 +290,40 @@ export class RoomController {
     const chat = new ChatEntity();
     const members: ChatMember[] = [];
     switch (true) {
-      case body.type === CHAT_TYPE.GROUP || body.type === CHAT_TYPE.PUBLIC:
+      case body.type === CHAT_TYPE.GROUP:
+        if (!body.members || body.members.length == 0) throw new ApiException(`empty members`);
         chat.name = body.name || genChatName();
         // const existName = await this.chatService.findByName(chat.name, roomId);
         // if (existName) throw new ApiException(`chat name exist`);
         break;
       case body.type === CHAT_TYPE.PRIVATE:
-        if (!body.members || body.members.length == 0) throw new ApiException(`empty members`);
+        if (!body.members || body.members.length != 1) throw new ApiException(`Private chat has to contain 2 members!`);
+        const existingChat = await this.chatService.findPrivateChat(user.id, body.members[0], roomId);
+        if (existingChat) {
+          throw new ApiException(`Private chat already exists between the members`);
+        }
+        break;
+      case body.type === CHAT_TYPE.PUBLIC:
+        chat.name = body.name || genChatName();
         break;
     }
+    const room = await this.roomService.findById(roomId);
+    if (!room) throw new ApiException(`Room doesn't exist!`);
     // validate member
-    if (body.members?.length)
+    if (body.type === CHAT_TYPE.PUBLIC) {
+      await Promise.all(
+        room.members
+          .filter((m) => m.user != user.id)
+          .map(async (m) => {
+            const member = new ChatMember();
+            const user = await this.userService.findById(m.user);
+            if (!user) throw new ApiException(`user not found`);
+            member.role = `user`;
+            member.user = user.id;
+            members.push(member);
+          }),
+      );
+    } else {
       await Promise.all(
         body.members.map(async (userId) => {
           const member = new ChatMember();
@@ -311,6 +334,8 @@ export class RoomController {
           members.push(member);
         }),
       );
+    }
+
     // creator member
     const creatorMember = new ChatMember();
     creatorMember.role = body.type === CHAT_TYPE.PRIVATE ? 'user' : 'admin';
@@ -321,6 +346,14 @@ export class RoomController {
     chat.type = body.type;
     chat.members = members;
     const chatDoc = await this.chatService.create(chat);
+
+    const voffice = VOffice.roomsMap.get(roomId);
+    if (voffice) {
+      chat.members.forEach((m) => {
+        voffice.sendChatToClient(m.user, chatDoc);
+      });
+    }
+
     return {
       result: chatDoc,
       message: `Success`,
