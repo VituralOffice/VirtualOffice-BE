@@ -41,6 +41,17 @@ export class ChatService {
   async create(chat: Partial<ChatDocument>) {
     return this.chatModel.create(chat);
   }
+  async findPrivateChat(userId1: string, userId2: string, roomId: string): Promise<ChatDocument | null> {
+    return this.chatModel
+      .findOne({
+        type: CHAT_TYPE.PRIVATE,
+        room: roomId,
+        members: {
+          $all: [{ $elemMatch: { user: userId1 } }, { $elemMatch: { user: userId2 } }],
+        },
+      })
+      .exec();
+  }
   async createLobbyChat(room: RoomEntity, user: UserEntity) {
     const members: ChatMember[] = [];
     const chat = new Chat();

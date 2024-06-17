@@ -19,7 +19,7 @@ export type ChatDocument = Chat & Document;
 })
 export class Chat {
   @Prop({
-    required: true,
+    required: false,
   })
   name: string;
   @Prop({
