@@ -296,7 +296,7 @@ export class RoomController {
         // if (existName) throw new ApiException(`chat name exist`);
         break;
       case body.type === CHAT_TYPE.PRIVATE:
-        if (!body.members || body.members?.length === 0) throw new ApiException(`empty members`);
+        if (!body.members || body.members.length == 0) throw new ApiException(`empty members`);
         break;
     }
     // validate member
