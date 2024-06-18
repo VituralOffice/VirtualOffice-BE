@@ -31,6 +31,7 @@ import { Plan } from '../plan/schema';
 import { IMapMessage } from 'src/types/IOfficeState';
 import { VOffice, convertToChatMessageSchema } from './VOffice';
 import { MapMessage } from './schema/OfficeState';
+import { MapService } from '../map/service';
 @ApiTags('rooms')
 @Controller({
   path: 'rooms',
@@ -42,6 +43,7 @@ export class RoomController {
     private chatService: ChatService,
     private subscriptionService: SubscriptionService,
     private planService: PlanService,
+    private mapService: MapService,
   ) {}
   @Post()
   @ApiBody({ type: CreateRoomDto })
@@ -53,8 +55,17 @@ export class RoomController {
     // check room limit
     const totalRoom = await this.roomService.countRoom(user);
     await activeSubscription.populate(`plan`);
-    if (totalRoom >= (activeSubscription.plan as Plan).maxRoom)
+    const plan = activeSubscription.plan as Plan;
+    if (totalRoom >= plan.maxRoom)
       throw new ApiException(`Reach limit room on plan, please subscribe for new plan`, 400);
+
+    const map = await this.mapService.findById(body.map);
+    if (!map) throw new ApiException(`Map not found`, 404);
+    if (map.style != 'Classic' && activeSubscription.freePlan)
+      throw new ApiException(`This map style is only available with premium subscription`, 401);
+    if (map.capacity > plan.maxRoomCapacity)
+      throw new ApiException(`Room capacity can not exceed the max room capacity in subscription`, 401);
+
     const roomDoc = new RoomEntity();
     const member = new RoomMember();
     member.user = user.id;
