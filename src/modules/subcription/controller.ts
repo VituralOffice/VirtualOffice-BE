@@ -19,4 +19,12 @@ export class SubscriptionController {
       message: `Success`,
     };
   }
+  @Get('highest-monthly-price')
+  async getHighestMonthlyPriceSubscription(@User() user: UserEntity) {
+    const subscription = await this.subscriptionService.findHighestMonthlyPriceSubscription(user);
+    return {
+      result: subscription,
+      message: `Success`,
+    };
+  }
 }
