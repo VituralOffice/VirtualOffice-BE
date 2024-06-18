@@ -48,6 +48,12 @@ export class Map {
   })
   active: boolean;
   @Prop({
+    get(preview: string) {
+      return getS3Url(preview);
+    },
+  })
+  preview: string;
+  @Prop({
     get: (json: string) => {
       return getS3Url(json);
     },

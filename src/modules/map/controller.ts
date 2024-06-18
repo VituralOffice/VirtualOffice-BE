@@ -54,6 +54,7 @@ export class MapController {
     if (data.totalWhiteboard) map.totalWhiteboard = data.totalWhiteboard;
     if (data.default !== undefined) map.default = data.default;
     if (data.style) map.style = data.style;
+    if (data.preview) map.preview = data.preview;
     if (data.name) map.name = data.name;
     if (data.capacity) map.capacity = data.capacity;
     if (data.icon) map.icon = data.icon;
