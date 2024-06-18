@@ -309,6 +309,10 @@ export class RoomController {
     }
     const room = await this.roomService.findById(roomId);
     if (!room) throw new ApiException(`Room doesn't exist!`);
+
+    if (body.type === CHAT_TYPE.PUBLIC && user.id != room.creator)
+      throw new ApiException(`Only admin can create public chat!`);
+
     // validate member
     if (body.type === CHAT_TYPE.PUBLIC) {
       await Promise.all(
