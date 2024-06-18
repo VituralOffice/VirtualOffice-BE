@@ -28,6 +28,9 @@ export class CreateMapDto {
   @ApiProperty()
   style: string;
   @ApiProperty()
+  @ApiProperty()
+  @IsNotEmpty()
+  preview: string;
   icon: string;
   @ApiProperty()
   @IsNotEmpty()
@@ -52,6 +55,8 @@ export class UpdateMapDto {
   default?: boolean;
   @ApiProperty()
   style?: string;
+  @ApiProperty()
+  preview?: string;
   @ApiProperty()
   icon?: string;
   @ApiProperty()
