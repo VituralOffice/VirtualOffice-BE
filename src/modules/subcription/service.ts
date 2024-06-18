@@ -54,6 +54,26 @@ export class SubscriptionService {
     if (query.freePlan !== undefined) param.freePlan = query.freePlan;
     return this.subscriptionModel.find(param).populate('plan');
   }
+  async findHighestMonthlyPriceSubscription(user: UserEntity) {
+    const now = new Date();
+    const subscriptions = await this.subscriptionModel
+      .find({
+        user: user.id,
+        $or: [
+          { endDate: { $gte: now } }, // Subscription có hạn sử dụng
+          { freePlan: true }, // Subscription miễn phí
+        ],
+      })
+      .populate('plan')
+      .sort({ 'plan.monthlyPrice': -1 })
+      .exec();
+
+    if (!subscriptions || subscriptions.length === 0) {
+      return null;
+    }
+
+    return subscriptions[0];
+  }
   async findActivePlan(planId: string) {
     return this.subscriptionModel.findOne({
       status: SUBSCRIPTION_STATUS.ACTIVE,
