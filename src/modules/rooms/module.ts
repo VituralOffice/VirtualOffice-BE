@@ -9,6 +9,7 @@ import { UserModule } from '../user/module';
 import { ChatModule } from '../chat/module';
 import { SubscriptionModule } from '../subcription/module';
 import { PlanModule } from '../plan/module';
+import { MapModule } from '../map/module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { PlanModule } from '../plan/module';
     ChatModule,
     SubscriptionModule,
     PlanModule,
+    MapModule,
   ],
   controllers: [RoomController],
   providers: [...roomProviders],
