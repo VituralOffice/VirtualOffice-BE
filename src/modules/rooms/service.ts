@@ -149,6 +149,9 @@ export class RoomService {
     if (payload.online !== undefined) {
       updatePayload['members.$.online'] = payload.online;
     }
+    if (payload.lastJoinedAt) {
+      updatePayload['members.$.lastJoinedAt'] = payload.lastJoinedAt;
+    }
     return this.roomModel.updateOne({ _id: roomId, 'members.user': userId }, { $set: updatePayload });
   }
   async removeMember(roomId: string, userId: string) {

@@ -134,63 +134,26 @@ export class RoomController {
   async joinRoom(@Param('roomId') roomId: string, @User() user: UserEntity) {
     const room = await this.roomService.findById(roomId);
     if (!room) throw new ApiException(`room not found`, 404);
-
     const isMember = await this.roomService.checkUserInRoom(user, room);
-
-    if (room.private) {
-      if (isMember) {
-        await this.roomService.updateRoomMember(roomId, user.id, { online: true });
-        const updatedRoomData = await this.roomService.findByIdPopulate(room._id, [
-          'map',
-          {
-            path: 'members.user',
-            populate: {
-              path: 'character',
-            },
-          },
-        ]);
-        return {
-          result: updatedRoomData,
-          message: `Success`,
-        };
-      } else {
-        throw new ApiException(`forbidden`, 403);
-      }
-    } else {
-      if (isMember) {
-        await this.roomService.updateRoomMember(roomId, user.id, { online: true });
-        const updatedRoomData = await this.roomService.findByIdPopulate(room._id, [
-          'map',
-          {
-            path: 'members.user',
-            populate: {
-              path: 'character',
-            },
-          },
-        ]);
-        return {
-          result: updatedRoomData,
-          message: `Success`,
-        };
-      } else {
-        await this.roomService.joinRoom(room, user);
-        await this.chatService.addMemberToPublicChat(room, user);
-        await this.roomService.updateRoomMember(roomId, user.id, { online: true });
-        const updatedRoomData = await this.roomService.findByIdPopulate(room._id, [
-          'map',
-          {
-            path: 'members.user',
-            populate: {
-              path: 'character',
-            },
-          },
-        ]);
-        return {
-          result: updatedRoomData,
-          message: `Success`,
-        };
-      }
+    if (room.private && !isMember) throw new ApiException(`forbidden`, 403);
+    if (!room.private && !isMember) {
+      await this.roomService.joinRoom(room, user);
+      await this.chatService.addMemberToPublicChat(room, user);
     }
+    await this.roomService.updateRoomMember(roomId, user.id, { online: true, lastJoinedAt: new Date() });
+    const updatedRoomData = await this.roomService.findByIdPopulate(room._id, [
+      'map',
+      {
+        path: 'members.user',
+        populate: {
+          path: 'character',
+        },
+      },
+    ]);
+    return {
+      result: updatedRoomData,
+      message: `Success`,
+    };
   }
   @Post(':roomId/invite')
   async invite(@Param('roomId') roomId: string, @Body() body: InviteRoomDto, @User() inviter: UserEntity) {
