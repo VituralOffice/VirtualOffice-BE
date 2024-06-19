@@ -29,6 +29,7 @@ export class SecretsService extends ConfigService implements ISecretsService {
     url: this.get(`REDIS_URL`),
     host: this.get(`REDIS_HOST`),
     port: parseInt(this.get(`REDIS_PORT`)),
+    password: this.get(`REDIS_PASSWORD`),
   };
   database = {
     host: this.get('MONGO_HOST'),
