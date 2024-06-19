@@ -39,6 +39,8 @@ export class RoomMember {
     default: ROLE.USER,
   })
   role: string;
+  @Prop()
+  lastJoinedAt: Date;
 }
 
 export const RoomMemberSchema = SchemaFactory.createForClass(RoomMember);
