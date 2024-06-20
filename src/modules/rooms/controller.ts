@@ -120,6 +120,7 @@ export class RoomController {
   async joinPrivateRoom(@Param('roomId') roomId: string, @Body() body: JoinRoomDto, @User() user: UserEntity) {
     const room = await this.roomService.findById(roomId);
     if (!room) throw new ApiException(`room not found`, 404);
+    if (!room.active) throw new ApiException(`Can not join inactive room`, 403);
     if (!(await this.roomService.checkValidJoinRoomToken(roomId, body.token)))
       throw new ApiException(`token expired`, 400);
     if (await this.roomService.checkUserInRoom(user, room)) throw new ApiException(`user already in room`, 400);
@@ -134,6 +135,7 @@ export class RoomController {
   async joinRoom(@Param('roomId') roomId: string, @User() user: UserEntity) {
     const room = await this.roomService.findById(roomId);
     if (!room) throw new ApiException(`room not found`, 404);
+    if (!room.active) throw new ApiException(`Can not join inactive room`, 403);
     const isMember = await this.roomService.checkUserInRoom(user, room);
     if (room.private && !isMember) throw new ApiException(`forbidden`, 403);
     if (!room.private && !isMember) {
@@ -191,6 +193,8 @@ export class RoomController {
     const room = await this.roomService.findById(roomId);
     if (!room) throw new ApiException(`room not found`, 404);
     if (room.creator.toString() !== user.id.toString()) throw new ApiException(`forbidden`, 403);
+    const activeSubscription = await this.subscriptionService.findActiveSubscription(user);
+    if (!activeSubscription) throw new ApiException(`Please upgrade your plan to perform this action`, 403);
 
     const updateFields: Partial<ChangeRoomSettingDto> = {};
     if (body.map !== undefined) updateFields.map = body.map;
