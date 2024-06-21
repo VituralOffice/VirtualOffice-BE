@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, RawBodyRequest, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Param, Post, RawBodyRequest, Req, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PaymentService } from './service';
 import { BILLING_CYCLE, CancelDto, CreateCheckoutDto, RetryCheckoutDto } from './dto';
@@ -18,6 +18,7 @@ import { Public } from 'src/common/decorators/public.decorator';
   path: `payments`,
 })
 export class PaymentController {
+  logger = new Logger(PaymentController.name);
   constructor(
     private readonly paymentService: PaymentService,
     private readonly planService: PlanService,
@@ -37,6 +38,9 @@ export class PaymentController {
     const sig = req.headers['stripe-signature'] as string;
     try {
       const event = await this.paymentService.constructEvent(req.body, sig);
+      this.logger.log(`[event.type]: ${event.type}`);
+      this.logger.log(`[event.data.object]: ${JSON.stringify(event.data.object)}`);
+
       switch (event.type) {
         case 'checkout.session.completed':
           await this.paymentService.handleCheckoutSessionCompleted(event.data.object);
@@ -69,7 +73,7 @@ export class PaymentController {
           await this.paymentService.handleSubscriptionResumed(event.data.object);
           break;
         default:
-          console.log(`Unhandled event type ${event.type}`);
+          this.logger.log(`Unhandled event type ${event.type}`);
       }
       // Return a 200 response to acknowledge receipt of the event
       return res.status(200).send();
