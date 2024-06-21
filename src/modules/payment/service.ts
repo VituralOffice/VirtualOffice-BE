@@ -7,6 +7,9 @@ import { PAYMENT_STATUS, SUBSCRIPTION_STATUS } from '../subcription/constant';
 import { MailerService } from '@nestjs-modules/mailer';
 import { User } from '../user/schema';
 import { Plan } from '../plan/schema';
+import { RoomService } from '../rooms/service';
+import { Message } from 'src/types/Messages';
+import { VOffice } from '../rooms/VOffice';
 @Injectable()
 export class PaymentService {
   private stripe: Stripe;
@@ -14,6 +17,7 @@ export class PaymentService {
     private readonly secretsService: ISecretsService,
     private readonly subscriptionService: SubscriptionService,
     private readonly mailerService: MailerService,
+    private readonly roomService: RoomService,
   ) {
     this.stripe = new Stripe(this.secretsService.STRIPE_PRIVATE_KEY);
   }
@@ -102,6 +106,15 @@ export class PaymentService {
       if (!dbSubscription) return;
       dbSubscription.status = SUBSCRIPTION_STATUS.EXPIRED;
       dbSubscription.paymentStatus = PAYMENT_STATUS.PAST_DUE;
+      const rooms = await this.roomService.find({ creator: dbSubscription.user, plan: dbSubscription.plan });
+      if (rooms.length === 0) return;
+      await Promise.allSettled(
+        rooms.map(async (room) => {
+          room.active = false;
+          await room.save();
+          await VOffice.sendRoomMessage(room.id, Message.ROOM_DISPOSE, { message: 'Room is inactive' });
+        }),
+      );
     }
   }
   // customer delete subscription
@@ -110,6 +123,15 @@ export class PaymentService {
     if (!dbSubscription) return;
     dbSubscription.status = SUBSCRIPTION_STATUS.CANCELLED;
     // todo inactive rooms
+    const rooms = await this.roomService.find({ creator: dbSubscription.user, plan: dbSubscription.plan });
+    if (rooms.length === 0) return;
+    await Promise.allSettled(
+      rooms.map(async (room) => {
+        room.active = false;
+        await room.save();
+        await VOffice.sendRoomMessage(room.id, Message.ROOM_DISPOSE, { message: 'Room is inactive' });
+      }),
+    );
   }
   async cancelStripeSubscription(subscriptionId: string) {
     return this.stripe.subscriptions.cancel(subscriptionId);

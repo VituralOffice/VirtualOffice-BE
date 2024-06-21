@@ -32,6 +32,7 @@ import { IMapMessage } from 'src/types/IOfficeState';
 import { VOffice, convertToChatMessageSchema } from './VOffice';
 import { MapMessage } from './schema/OfficeState';
 import { MapService } from '../map/service';
+import { Message } from 'src/types/Messages';
 @ApiTags('rooms')
 @Controller({
   path: 'rooms',
@@ -61,7 +62,7 @@ export class RoomController {
 
     const map = await this.mapService.findById(body.map);
     if (!map) throw new ApiException(`Map not found`, 404);
-    if (map.style != 'Classic' && plan.free)
+    if (map.style != 'Classic' && activeSubscription.freePlan)
       throw new ApiException(`This map style is only available with premium subscription`, 401);
     if (map.capacity > plan.maxRoomCapacity)
       throw new ApiException(`Room capacity can not exceed the max room capacity in subscription`, 401);
@@ -142,7 +143,7 @@ export class RoomController {
       await this.roomService.joinRoom(room, user);
       await this.chatService.addMemberToPublicChat(room, user);
     }
-    // await this.roomService.updateRoomMember(roomId, user.id, { online: true, lastJoinedAt: new Date() });
+    await this.roomService.updateRoomMember(roomId, user.id, { online: true, lastJoinedAt: new Date() });
     const updatedRoomData = await this.roomService.findByIdPopulate(room._id, [
       'map',
       {
@@ -201,7 +202,6 @@ export class RoomController {
     if (body.name !== undefined) updateFields.name = body.name;
     if (body.private !== undefined) updateFields.private = body.private;
     if (body.active !== undefined) updateFields.active = body.active;
-
     if (Object.keys(updateFields).length === 0) {
       return {
         result: null,
@@ -211,7 +211,11 @@ export class RoomController {
 
     // Update the room settings
     await this.roomService.updateRoomSettings(roomId, updateFields);
-
+    if (body.active === false) {
+      await VOffice.sendRoomMessage(roomId, Message.ROOM_DISPOSE, {
+        message: `Room is shutdown by admin`,
+      });
+    }
     return {
       result: null,
       message: `Success`,
@@ -245,6 +249,9 @@ export class RoomController {
     if (room.creator.toString() !== user.id.toString()) throw new ApiException(`forbidden`, 403);
     await this.chatService.deleteAllChatsInRoom(roomId);
     await this.roomService.deleteRoom(roomId);
+    await VOffice.sendRoomMessage(roomId, Message.ROOM_DISPOSE, {
+      message: `Room is deleted by admin`,
+    });
     return {
       result: null,
       message: `Success`,

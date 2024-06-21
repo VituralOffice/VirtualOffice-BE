@@ -386,7 +386,13 @@ export class VOffice extends Room<OfficeState> {
     //   ...updatedRoomData.toJSON(),
     // });
   }
-
+  static async sendRoomMessage(roomId: string, messageType: Message, payload: any) {
+    const room = VOffice.roomsMap.get(roomId);
+    if (!room) return;
+    room.clients.forEach((client) => {
+      client.send(messageType, payload);
+    });
+  }
   sendChatToClient(userId: string, chat: ChatDocument) {
     const sessionId = this.state.mapClients.get(userId);
     const client = this.clients.find((c) => c.sessionId == sessionId);
