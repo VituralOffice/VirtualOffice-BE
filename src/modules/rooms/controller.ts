@@ -61,7 +61,7 @@ export class RoomController {
 
     const map = await this.mapService.findById(body.map);
     if (!map) throw new ApiException(`Map not found`, 404);
-    if (map.style != 'Classic' && activeSubscription.freePlan)
+    if (map.style != 'Classic' && plan.free)
       throw new ApiException(`This map style is only available with premium subscription`, 401);
     if (map.capacity > plan.maxRoomCapacity)
       throw new ApiException(`Room capacity can not exceed the max room capacity in subscription`, 401);
@@ -142,7 +142,7 @@ export class RoomController {
       await this.roomService.joinRoom(room, user);
       await this.chatService.addMemberToPublicChat(room, user);
     }
-    await this.roomService.updateRoomMember(roomId, user.id, { online: true, lastJoinedAt: new Date() });
+    // await this.roomService.updateRoomMember(roomId, user.id, { online: true, lastJoinedAt: new Date() });
     const updatedRoomData = await this.roomService.findByIdPopulate(room._id, [
       'map',
       {
