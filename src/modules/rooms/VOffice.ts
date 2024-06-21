@@ -363,6 +363,7 @@ export class VOffice extends Room<OfficeState> {
     const player = newPlayer(auth);
     this.state.players.set(client.sessionId, player);
     this.state.mapClients.set(player.id, client.sessionId);
+    await this.roomService.updateRoomMember(this.roomId, player.id, { online: true, lastJoinedAt: new Date() });
     // const room = await this.roomService.findById(this.roomId);
     // if (room.private && !room.members.find((m) => m.user.toString() === auth.id.toString())) return;
     // if (!room.private && !room.members.find((m) => m.user.toString() === auth.id.toString())) {
