@@ -26,6 +26,9 @@ export class RoomService {
   async create(data: RoomEntity) {
     return this.roomModel.create(data);
   }
+  async find(query: FilterQuery<Room>) {
+    return this.roomModel.find(query);
+  }
   async paginate(query: QueryDto) {
     const param: FilterQuery<Room> = {};
     const page = query.page;
