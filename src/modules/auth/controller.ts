@@ -67,10 +67,22 @@ export class AuthController {
     });
   }
   @Post('logout')
-  async logout(@User() user: UserEntity, @Res() res: Response) {
+  async logout(@User() user: UserEntity, @Req() req: Request, @Res() res: Response) {
     await this.authService.logout(user);
-    res.clearCookie(`accessToken`);
-    res.clearCookie(`refreshToken`);
+    res.clearCookie(`accessToken`, {
+      httpOnly: false,
+      secure: true,
+      path: '/',
+      sameSite: 'none',
+      domain: cookieDomain(req.hostname),
+    });
+    res.clearCookie(`refreshToken`, {
+      httpOnly: false,
+      secure: true,
+      path: '/',
+      sameSite: 'none',
+      domain: cookieDomain(req.hostname),
+    });
     res.status(200).send({
       result: null,
       message: `Success`,
