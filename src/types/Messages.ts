@@ -21,4 +21,5 @@ export enum Message {
   MEETING_RECEIVE,
   ADD_CHAT,
   ROOM_DISPOSE,
+  MEMBER_LEAVE,
 }

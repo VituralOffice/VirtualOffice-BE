@@ -393,13 +393,16 @@ export class VOffice extends Room<OfficeState> {
       client.send(messageType, payload);
     });
   }
-  sendChatToClient(userId: string, chat: ChatDocument) {
-    const sessionId = this.state.mapClients.get(userId);
-    const client = this.clients.find((c) => c.sessionId == sessionId);
-    if (client) {
-      console.log(`send chat to ${client.sessionId}`);
-      client.send(Message.ADD_CHAT, { chat });
-    }
+  static async sendRoomMessageToClients(roomId: string, users: string[], messageType: Message, payload: any) {
+    const room = VOffice.roomsMap.get(roomId);
+    if (!room) return;
+    users.forEach((u) => {
+      const sessionId = room.state.mapClients.get(u);
+      const client = room.clients.find((c) => c.sessionId == sessionId);
+      if (client) {
+        client.send(messageType, payload);
+      }
+    });
   }
 
   async onLeave(client: Client, consented: boolean) {
