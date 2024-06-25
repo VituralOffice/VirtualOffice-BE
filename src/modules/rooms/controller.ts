@@ -150,7 +150,6 @@ export class RoomController {
       await this.roomService.joinRoom(room, user);
       await this.chatService.addMemberToPublicChat(room, user);
     }
-    await this.roomService.updateRoomMember(roomId, user.id, { online: true, lastJoinedAt: new Date() });
     const updatedRoomData = await this.roomService.findByIdPopulate(room._id, [
       'map',
       {
