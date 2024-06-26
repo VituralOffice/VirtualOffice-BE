@@ -96,9 +96,16 @@ export class RoomController {
   @UseGuards(NotFoundRoomGuard)
   @Get(':roomId')
   async getRoomById(@Param('roomId') roomId: string, @User() user: UserEntity) {
-    const room = await this.roomService.findById(roomId);
+    const room = await this.roomService.findByIdPopulate(roomId, [
+      'map',
+      {
+        path: 'members.user',
+        populate: {
+          path: 'character',
+        },
+      },
+    ]);
     if (!room) throw new ApiException(`room not found`, 404);
-    await room.populate(['map', 'members.user']);
     if (!(await this.roomService.checkUserInRoom(user, room)) && room.private)
       throw new ApiException(`user not in room`, 400);
     return {
@@ -143,7 +150,6 @@ export class RoomController {
       await this.roomService.joinRoom(room, user);
       await this.chatService.addMemberToPublicChat(room, user);
     }
-    await this.roomService.updateRoomMember(roomId, user.id, { online: true, lastJoinedAt: new Date() });
     const updatedRoomData = await this.roomService.findByIdPopulate(room._id, [
       'map',
       {
@@ -226,6 +232,7 @@ export class RoomController {
     const room = await this.roomService.findById(roomId);
     if (!room) throw new ApiException(`room not found`, 404);
     await this.roomService.leaveRoom(room, user);
+    VOffice.sendRoomMessage(roomId, Message.MEMBER_LEAVE, { userId: user.id });
     return {
       result: null,
       message: `Success`,
@@ -335,13 +342,14 @@ export class RoomController {
     chat.type = body.type;
     chat.members = members;
     const chatDoc = await this.chatService.create(chat);
+    const chatResponse = await (await this.chatService.findById(chatDoc.id)).populate('members.user');
 
-    const voffice = VOffice.roomsMap.get(roomId);
-    if (voffice) {
-      chat.members.forEach((m) => {
-        voffice.sendChatToClient(m.user, chatDoc);
-      });
-    }
+    VOffice.sendRoomMessageToClients(
+      roomId,
+      chat.members.map((m) => m.user),
+      Message.ADD_CHAT,
+      chatResponse,
+    );
 
     return {
       result: chatDoc,
