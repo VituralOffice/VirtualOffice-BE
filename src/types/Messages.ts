@@ -22,4 +22,5 @@ export enum Message {
   ADD_CHAT,
   ROOM_DISPOSE,
   MEMBER_LEAVE,
+  MEDIA_STREAM_CHANGE,
 }

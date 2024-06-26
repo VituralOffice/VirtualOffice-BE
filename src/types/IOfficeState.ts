@@ -14,6 +14,7 @@ export interface IPlayer extends UserEntity, Schema {
   isInMeeting: boolean;
   characterId: string;
   characterAvatar: string;
+  changeMediaStream: number;
 }
 
 export interface IMeeting extends Schema {
