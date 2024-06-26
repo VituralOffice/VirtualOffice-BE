@@ -2,7 +2,7 @@ import { Body, Controller, HttpCode, Post, Req, Res } from '@nestjs/common';
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SwaggerResponse } from './swagger';
 import { LoginDto, RefreshTokenDto, VerifyEmailDto } from './dto';
-import { Request, Response } from 'express';
+import { CookieOptions, Request, Response } from 'express';
 import { JWT_ACCESS_KEY, JWT_REFRESH_KEY } from 'src/constant';
 import { Public } from 'src/common/decorators/public.decorator';
 import { UserEntity } from '../user/entity';
@@ -10,6 +10,7 @@ import { ApiFailedRes } from 'src/common/documentation/swagger';
 import { User } from 'src/common/decorators/current-user.decorator';
 import { AuthService } from './service';
 import { cookieDomain } from 'src/common/helpers/common';
+import { ApiException } from 'src/common';
 
 @Controller({
   path: 'auth',
@@ -94,28 +95,25 @@ export class AuthController {
     type: RefreshTokenDto,
   })
   async refresh(@Body() body: RefreshTokenDto, @Req() req: Request, @Res() res: Response) {
-    const { accessToken, refreshToken } = await this.authService.refreshToken(body.refreshToken);
-    res.clearCookie(JWT_ACCESS_KEY);
-    res.clearCookie(JWT_REFRESH_KEY);
-    res.cookie(JWT_ACCESS_KEY, accessToken, {
+    const token = await this.authService.refreshToken(body.refreshToken);
+    const cookieOpt = {
       httpOnly: false,
       secure: true,
       path: '/',
       sameSite: 'none',
       domain: cookieDomain(req.hostname),
-    });
-    res.cookie(JWT_REFRESH_KEY, refreshToken, {
-      httpOnly: false,
-      secure: true,
-      path: '/',
-      sameSite: 'none',
-      domain: cookieDomain(req.hostname),
-    });
+    } as CookieOptions;
+    if (!token) {
+      res.clearCookie(JWT_ACCESS_KEY, cookieOpt);
+      res.clearCookie(JWT_REFRESH_KEY, cookieOpt);
+      throw new ApiException(`Invalid refresh token`);
+    }
+    res.clearCookie(JWT_ACCESS_KEY, cookieOpt);
+    res.clearCookie(JWT_REFRESH_KEY, cookieOpt);
+    res.cookie(JWT_ACCESS_KEY, token.accessToken, cookieOpt);
+    res.cookie(JWT_REFRESH_KEY, token.refreshToken, cookieOpt);
     return res.status(200).json({
-      result: {
-        accessToken,
-        refreshToken,
-      },
+      result: token,
       message: `Success`,
       code: 200,
     });

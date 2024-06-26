@@ -48,7 +48,7 @@ export class AuthService {
   }
   async refreshToken(token: string) {
     const tokenDoc = await this.tokenService.findRefreshToken(token);
-    if (!tokenDoc || tokenDoc?.isBlacklist === true) throw new ApiException(`invalid refresh token`);
+    if (!tokenDoc || tokenDoc?.isBlacklist === true) return;
     const user = await this.userService.findById(tokenDoc.user);
     await this.tokenService.revoke(user.id);
     return this.signPairToken(user);
